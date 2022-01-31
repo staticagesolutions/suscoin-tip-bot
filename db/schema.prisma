@@ -1,0 +1,19 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Wallet {
+  username   String @unique
+  address    String @unique
+  privateKey String @unique
+}
+
+model Chat {
+  chatId Int @unique
+  username String @unique
+}
