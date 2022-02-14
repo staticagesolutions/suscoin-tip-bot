@@ -9,7 +9,8 @@
     "ngrok:start": "ngrok http 3000",
     "db:generate": "prisma generate --schema=./db/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=./db/schema.prisma --skip-seed",
-    "db:connect": "pscale connect syscoin-tip-bot"
+    "db:connect": "pscale connect syscoin-tip-bot",
+    "postinstall": "db:generate"
   },
   "dependencies": {
     "@prisma/client": "^3.8.1",
