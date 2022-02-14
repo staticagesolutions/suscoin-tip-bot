@@ -10,7 +10,7 @@
     "db:generate": "prisma generate --schema=./db/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=./db/schema.prisma --skip-seed",
     "db:connect": "pscale connect syscoin-tip-bot",
-    "postinstall": "db:generate"
+    "postinstall": "prisma generate --schema=./db/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^3.8.1",
