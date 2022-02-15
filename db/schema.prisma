@@ -17,3 +17,10 @@ model Chat {
   chatId BigInt   @unique
   username String @unique
 }
+
+model GroupChat {
+  chatId    Int      @unique
+  title     String
+  createAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

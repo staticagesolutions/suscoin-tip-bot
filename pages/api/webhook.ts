@@ -6,6 +6,7 @@ import { messageHandlers } from "../../message_handlers";
 import db from "@db";
 import { callbackHandlers, callbackUtils } from "../../callback_handlers";
 
+import { handleGroupMessage } from "message_handlers/group";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<string>
@@ -16,13 +17,20 @@ export default async function handler(
 
   try {
     if (update.message) {
-      const { text } = update.message;
-      const command = text!;
-      const messageHandler = messageHandlers.find((handler) =>
-        handler.identifier.test(command)
-      );
-      if (messageHandler) {
-        await messageHandler.handleMessage(bot, update);
+      const {
+        text,
+        chat: { type },
+      } = update.message;
+      if (type === "group") {
+        handleGroupMessage(bot, update);
+      } else {
+        const command = text!;
+        const messageHandler = messageHandlers.find((handler) =>
+          handler.identifier.test(command)
+        );
+        if (messageHandler) {
+          await messageHandler.handleMessage(bot, update);
+        }
       }
     } else if (update.callback_query) {
       callbackUtils.removeInlineKeyboardOptions(bot, update);
