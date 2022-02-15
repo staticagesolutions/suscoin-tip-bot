@@ -1,4 +1,5 @@
 import { Account } from "web3-core";
+import web3 from "./web3";
 
 import db from "@db";
 
@@ -6,7 +7,7 @@ export class WalletService {
   constructor() {}
 
   public async getWallet(username: string) {
-      return db.wallet.findUnique({ where: { username } });
+    return db.wallet.findUnique({ where: { username } });
   }
 
   public async checkIfExist(username: string) {
@@ -23,5 +24,17 @@ export class WalletService {
         username,
       },
     });
+  }
+
+  async getOrCreateWallet(username: string) {
+    let wallet = await this.getWallet(username);
+
+    if (!wallet) {
+      const recipientAccount = web3.eth.accounts.create();
+      await this.saveWallet(username, recipientAccount);
+      wallet = await this.getWallet(username);
+    }
+
+    return wallet;
   }
 }
