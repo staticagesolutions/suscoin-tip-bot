@@ -1,5 +1,6 @@
 import Web3 from "web3";
 
-const web3 = new Web3("https://rpc-mumbai.matic.today");
+export const rpcProvider = process.env.RPC_PROVIDER ?? "https://rpc.syscoin.org";
+const web3 = new Web3(rpcProvider);
 
 export default web3;

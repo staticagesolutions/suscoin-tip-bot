@@ -14,6 +14,6 @@ model Wallet {
 }
 
 model Chat {
-  chatId Int @unique
+  chatId BigInt   @unique
   username String @unique
 }
