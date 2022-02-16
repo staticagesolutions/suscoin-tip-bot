@@ -37,6 +37,7 @@ yarn-error.log*
 *.tsbuildinfo
 
 #smart contract
+solidity/.secret
 solidity/build/
 solidity/node_modules
 solidity/waffle.json
