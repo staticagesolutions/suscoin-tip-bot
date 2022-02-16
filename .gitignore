@@ -35,3 +35,10 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+#smart contract
+solidity/build/
+solidity/node_modules
+solidity/waffle.json
+solidity/cache/solcjs/v0.6.2+commit.bacdbe57.js
+solidity/cache/solcjs/v0.8.10+commit.fc410830.js
