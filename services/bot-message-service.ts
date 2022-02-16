@@ -1,4 +1,8 @@
-import TelegramBot, { SendMessageOptions } from "node-telegram-bot-api";
+import { CallbackData } from "callback_handlers/enums";
+import TelegramBot, {
+  InlineKeyboardMarkup,
+  SendMessageOptions,
+} from "node-telegram-bot-api";
 
 export interface MessageConfigI {
   bot: TelegramBot;
@@ -65,5 +69,22 @@ export class BotMessageService {
       message,
       config.sendMessageConfig
     );
+  }
+
+  get confirmTxReplyMarkup(): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: "yes",
+            callback_data: CallbackData.ConfirmTransaction,
+          },
+          {
+            text: "cancel",
+            callback_data: CallbackData.None,
+          },
+        ],
+      ],
+    };
   }
 }

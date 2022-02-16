@@ -1,4 +1,4 @@
-import TelegramBot, { Update } from "node-telegram-bot-api";
+import TelegramBot, { BotCommand, Update } from "node-telegram-bot-api";
 import { ChatService } from "services/chat-service";
 import { MessageHandler } from "./types";
 
@@ -10,8 +10,41 @@ export class StartMessageHandler implements MessageHandler {
       chat: { id },
       text,
     } = update.message!;
-    const message = `✅ Thanks for your message: *"${text}"*\nHave a great day! 👋🏻`;
+    const message = this.generateStartMessage();
+
+    const privateChatCommands: BotCommand[] = [
+      {
+        command: "/send",
+        description: "<address> <amount>",
+      },
+    ];
+
+    await bot.setMyCommands(privateChatCommands, {
+      scope: {
+        type: "all_private_chats",
+      },
+    });
+
     await this.chatService.registerChatId(update);
-    await bot.sendMessage(id, message, { parse_mode: "Markdown" });
+    await bot.sendMessage(id, message, {
+      parse_mode: "Markdown",
+      reply_markup: {
+        resize_keyboard: true,
+        one_time_keyboard: true,
+        keyboard: [
+          [
+            {
+              text: "✅ I understand",
+            },
+          ],
+        ],
+      },
+    });
+  }
+
+  generateStartMessage() {
+    const landingPageLink = "https://google.com";
+    const message = `Welcome to the Syscoin NEVM tip bot. You are one step away from being able to send and receive Syscoin and other Sys based tokens through telegram. Please [click here](${landingPageLink}) to learn more and accept terms.`;
+    return message;
   }
 }
