@@ -5,7 +5,12 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "truffle compile"
+    "build": "truffle compile",
+    "deploy": "truffle migrate --network development",
+    "testnet": "truffle migrate --network tanenbaum",
+    "mainnet": "truffle migrate --network tanenbaum",
+    "test": "truffle test",
+    "console": "truffle console --network development"
   },
   "devDependencies": {
     "@openzeppelin/contracts": "^4.4.2",
