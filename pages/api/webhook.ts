@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import TelegramBot, { Update } from "node-telegram-bot-api";
 import { messageHandlers } from "../../message_handlers";
 import db from "@db";
-import { callbackHandlers, callbackUtils } from "../../callback_handlers";
+import { callbackHandlers } from "../../callback_handlers";
 
 import { handleGroupMessage } from "message_handlers/group";
 export default async function handler(
@@ -33,7 +33,6 @@ export default async function handler(
         }
       }
     } else if (update.callback_query) {
-      callbackUtils.removeInlineKeyboardOptions(bot, update);
       const { data } = update.callback_query;
       const callbackHandler = callbackHandlers.find(
         (handler) => handler.callbackData === data

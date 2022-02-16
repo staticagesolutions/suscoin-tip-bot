@@ -2,12 +2,14 @@ import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
 import { CallbackData } from "./enums";
 import { CallbackHandler } from "./types";
 import web3 from "services/web3";
+import { callbackUtils } from "callback_handlers";
 
 export class ConfirmTransactionCallbackHandler implements CallbackHandler {
   callbackData = CallbackData.ConfirmTransaction;
   explorerLink = process.env.EXPLORER_LINK ?? "https://explorer.syscoin.org";
 
   async handleCallback(bot: TelegramBot, update: Update): Promise<void> {
+    callbackUtils.removeInlineKeyboardOptions(bot, update);
     const { message, id } = update.callback_query!;
     const sendMessageConfig: SendMessageOptions = {
       parse_mode: "Markdown",
@@ -33,7 +35,7 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
 
     sendEvent.on("error", (err) => {
       console.log(err.message);
-      bot.sendMessage(chatId, `Transaction Failed.`);
+      bot.sendMessage(chatId, `${err.message}`);
     });
 
     const txLink = `${this.explorerLink}/tx`;

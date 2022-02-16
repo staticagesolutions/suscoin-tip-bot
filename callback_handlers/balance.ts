@@ -1,18 +1,20 @@
 import TelegramBot, { Update } from "node-telegram-bot-api";
-import { MessageHandler } from "./types";
+import { CallbackHandler } from "./types";
 
 import web3 from "services/web3";
 import { WalletService } from "services/wallet-service";
+import { CallbackData } from "./enums";
 
-export class BalanceMessageHandler implements MessageHandler {
-  identifier = /\/balance*/g;
+export class BalanceCallbackHandler implements CallbackHandler {
+  callbackData = CallbackData.CheckBalance;
 
   constructor(private walletService: WalletService) {}
 
-  async handleMessage(bot: TelegramBot, update: Update): Promise<void> {
+  async handleCallback(bot: TelegramBot, update: Update): Promise<void> {
     const {
       chat: { id, username },
-    } = update.message!;
+    } = update.callback_query!.message!;
+    
     if (!username) {
       console.error("No username found.", update);
       return;
@@ -23,7 +25,7 @@ export class BalanceMessageHandler implements MessageHandler {
       return;
     }
     const balance = await web3.eth.getBalance(wallet.address);
-    
+
     bot.sendMessage(id, `Balance:\t\t${web3.utils.fromWei(balance)}`);
   }
 }

@@ -130,22 +130,7 @@ export class TipMessageHandler implements MessageHandler {
     bot.sendMessage(id, message, {
       parse_mode: "Markdown",
       reply_to_message_id: message_id,
-      reply_markup: {
-        remove_keyboard: true,
-        one_time_keyboard: true,
-        inline_keyboard: [
-          [
-            {
-              text: "yes",
-              callback_data: CallbackData.ConfirmTransaction,
-            },
-            {
-              text: "cancel",
-              callback_data: CallbackData.None,
-            },
-          ],
-        ],
-      },
+      reply_markup: this.botMessageService.confirmTxReplyMarkup,
     });
   }
 
