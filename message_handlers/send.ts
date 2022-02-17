@@ -31,6 +31,11 @@ export class SendMessageHandler implements MessageHandler {
       reply_to_message_id: message_id,
     };
 
+    await bot.sendMessage(
+      id,
+      "You run /send command: "+username
+    ); //TODO: REMOVE THIS
+
     const botMessageConfig: MessageConfigI = {
       bot,
       chatId: id,
@@ -48,6 +53,11 @@ export class SendMessageHandler implements MessageHandler {
       return;
     }
 
+    await bot.sendMessage(
+      id,
+      "Wallet retrieval success"
+    ); //TODO: REMOVE THIS
+
     const tokens = (text ?? "").split(" ");
 
     if (tokens.length !== 3) {
@@ -57,6 +67,11 @@ export class SendMessageHandler implements MessageHandler {
       );
       return;
     }
+
+    await bot.sendMessage(
+      id,
+      "Correct command syntax"
+    ); //TODO: REMOVE THIS
 
     const [_, address, amountInText] = (text ?? "").split(" ");
 
