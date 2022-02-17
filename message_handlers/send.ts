@@ -20,7 +20,7 @@ export class SendMessageHandler implements MessageHandler {
   ) {}
 
   async handleMessage(bot: TelegramBot, update: Update): Promise<void> {
-
+    
     const {
       message_id,
       chat: { id, username },
@@ -59,6 +59,14 @@ export class SendMessageHandler implements MessageHandler {
     }
 
     const [_, address, amountInText] = (text ?? "").split(" ");
+
+    if (wallet.address === address) {
+      await bot.sendMessage(
+        id,
+        "You have entered your own wallet address. Please try again."
+      );
+      return;
+    }
 
     const amount = Number(amountInText);
     if (isNaN(amount) || amount <= 0) {

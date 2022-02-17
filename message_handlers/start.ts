@@ -1,6 +1,8 @@
 import TelegramBot, { BotCommand, Update } from "node-telegram-bot-api";
 import { ChatService } from "services/chat-service";
 import { MessageHandler } from "./types";
+import fs from "fs";
+import path from "path";
 
 export class StartMessageHandler implements MessageHandler {
   identifier = /\/start*/g;
@@ -43,8 +45,10 @@ export class StartMessageHandler implements MessageHandler {
   }
 
   generateStartMessage() {
-    const landingPageLink = "https://google.com";
-    const message = `Welcome to the Syscoin NEVM tip bot. You are one step away from being able to send and receive Syscoin and other Sys based tokens through telegram. Please [click here](${landingPageLink}) to learn more and accept terms.`;
+    const message = fs.readFileSync(
+      path.resolve("message_handlers/templates/start.md"),
+      "utf-8"
+    );
     return message;
   }
 }

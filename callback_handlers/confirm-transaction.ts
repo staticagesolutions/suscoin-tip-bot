@@ -33,15 +33,15 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
       });
     });
 
-    sendEvent.on("error", (err) => {
+    sendEvent.on("error", async (err) => {
       console.log(err.message);
-      bot.sendMessage(chatId, `${err.message}`);
+      await bot.sendMessage(chatId, `${err.message}`);
     });
 
     const txLink = `${this.explorerLink}/tx`;
     sendEvent.on("receipt", async (receipt) => {
       const txHash = receipt.transactionHash;
-      bot.sendMessage(
+      await bot.sendMessage(
         chatId,
         `Transaction was successful\n\nTxHash: ${txHash}\n\n Open in [explorer](${txLink}/${txHash})`,
         {
