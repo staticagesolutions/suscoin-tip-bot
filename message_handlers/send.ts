@@ -31,11 +31,6 @@ export class SendMessageHandler implements MessageHandler {
       reply_to_message_id: message_id,
     };
 
-    await bot.sendMessage(
-      id,
-      "You run /send command: "+username
-    ); //TODO: REMOVE THIS
-
     const botMessageConfig: MessageConfigI = {
       bot,
       chatId: id,
@@ -53,11 +48,6 @@ export class SendMessageHandler implements MessageHandler {
       return;
     }
 
-    await bot.sendMessage(
-      id,
-      "Wallet retrieval success"
-    ); //TODO: REMOVE THIS
-
     const tokens = (text ?? "").split(" ");
 
     if (tokens.length !== 3) {
@@ -67,11 +57,6 @@ export class SendMessageHandler implements MessageHandler {
       );
       return;
     }
-
-    await bot.sendMessage(
-      id,
-      "Correct command syntax"
-    ); //TODO: REMOVE THIS
 
     const [_, address, amountInText] = (text ?? "").split(" ");
 
@@ -116,7 +101,7 @@ export class SendMessageHandler implements MessageHandler {
     const signedTransaction = await account.signTransaction(transactionConfig);
 
     if (!signedTransaction.rawTransaction) {
-      bot.sendMessage(id, "Failed to sign transaction.", sendMessageConfig);
+      await bot.sendMessage(id, "Failed to sign transaction.", sendMessageConfig);
       return;
     }
 
@@ -125,7 +110,7 @@ export class SendMessageHandler implements MessageHandler {
       signedTransaction.rawTransaction!
     );
 
-    bot.sendMessage(id, message, {
+    await bot.sendMessage(id, message, {
       parse_mode: "Markdown",
       reply_to_message_id: message_id,
       reply_markup: this.botMessageService.confirmTxReplyMarkup,
