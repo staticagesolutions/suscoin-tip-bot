@@ -29,7 +29,7 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     await bot.sendMessage(id, "You are trying to tip a bot.");
     return;
   }
-  
+
   const username = from!.username;
 
   if (!username) {
@@ -118,10 +118,10 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
-  const transactionConfig = await transactionService.getTransactionConfig(
-    recipientWallet.address,
-    amount
-  );
+  let data = transactionService.tipByContract(recipientWallet.address);
+
+  const transactionConfig =
+    await transactionService.getTransactionConfigForContract(amount, data);
 
   const signedTransaction = await transactionService.signTransaction(
     tipperWallet.privateKey,
