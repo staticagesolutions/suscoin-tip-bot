@@ -73,7 +73,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     }
   }
 
-  function Withdraw (
+  function withdraw (
     uint256 amount, 
     bytes memory data,
     bytes[] calldata signatures

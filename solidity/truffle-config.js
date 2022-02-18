@@ -30,6 +30,14 @@ module.exports = {
      port: 8545,            // Standard Ethereum port (default: none)
      network_id: "*",       // Any network (default: none)
     },
+    mainnet: {
+      provider: function() {
+          return new HDWalletProvider(mnemonic, "https://rpc.syscoin.org")
+      },
+      websocket: true,        // Enable EventEmitter interface for web3 (default: false)
+      network_id: 57,
+      gas: 8000000      // gas should be no higher than 8m
+    },
     tanenbaum: {
       provider: function() {
           return new HDWalletProvider(mnemonic, "https://rpc.tanenbaum.io/")

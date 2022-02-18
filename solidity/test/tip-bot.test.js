@@ -39,9 +39,9 @@ contract("TipBot", (accounts)=>{
 
     it("Should be able to tip user1 to user2", async () => {
 
-        var user1_initial_balance = await web3.eth.getBalance(user1);
+        let user1_initial_balance = await web3.eth.getBalance(user1);
         console.log(user1_initial_balance);
-        var user2_initial_balance = await web3.eth.getBalance(user2);
+        let user2_initial_balance = await web3.eth.getBalance(user2);
         console.log(user2_initial_balance);
 
         const eventTip = tipbot.tip(user2,{from: user1, value: web3.utils.toWei('1')});
