@@ -8,6 +8,7 @@
     "build": "truffle compile",
     "deploy": "truffle migrate --network development",
     "testnet": "truffle migrate --network tanenbaum",
+    "testnet_matic": "truffle migrate --network maticTestnet",
     "mainnet": "truffle migrate --network tanenbaum",
     "test": "truffle test",
     "console": "truffle console --network development"
