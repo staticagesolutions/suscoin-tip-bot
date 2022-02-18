@@ -22,6 +22,17 @@ export class BotMessageService {
     return;
   }
 
+  async noRecipientUsernameMsg(config: MessageConfigI): Promise<void> {
+    const message = "Tipping requires both users to have username. Please update your profile.";
+
+    await config.bot.sendMessage(
+      config.chatId,
+      message,
+      config.sendMessageConfig
+    );
+    return;
+  }
+
   async insufficientBalance(config: MessageConfigI): Promise<void> {
     const message = "Insufficient balance.";
 
