@@ -64,25 +64,27 @@ contract("TipBot", (accounts)=>{
 
     it("Should be able to do airDrop to multiple users user1, user2, user3", async () => {
 
-        var user1_initial_balance = await web3.eth.getBalance(user1);
+        let user1_initial_balance = await web3.eth.getBalance(user1);
         console.log(user1_initial_balance);
-        var user2_initial_balance = await web3.eth.getBalance(user2);
+        let user2_initial_balance = await web3.eth.getBalance(user2);
         console.log(user2_initial_balance);
-        var user3_initial_balance = await web3.eth.getBalance(user3);
+        let user3_initial_balance = await web3.eth.getBalance(user3);
         console.log(user3_initial_balance);
-        var user4_initial_balance = await web3.eth.getBalance(user4);
+        let user4_initial_balance = await web3.eth.getBalance(user4);
         console.log(user4_initial_balance);
 
         const airdrop_address = [user1, user2, user3, user4];
-        tipbot.airDrop(airdrop_address,{from: admin1, value: web3.utils.toWei('1')});
+        tipbot.airDrop(airdrop_address,{from: admin1, value: web3.utils.toWei('2')});
+        admin_initial_balance = await web3.eth.getBalance(admin1);
         user1_initial_balance = await web3.eth.getBalance(user1);
         user2_initial_balance = await web3.eth.getBalance(user2);
         user3_initial_balance = await web3.eth.getBalance(user3);
         user4_initial_balance = await web3.eth.getBalance(user4);
-        console.log(await web3.utils.fromWei(user1_initial_balance));
-        console.log(await web3.utils.fromWei(user2_initial_balance));
-        console.log(await web3.utils.fromWei(user3_initial_balance));
-        console.log(await web3.utils.fromWei(user4_initial_balance));
+        console.log('admin: '  + await web3.utils.fromWei(admin_initial_balance));
+        console.log('user1:' + await web3.utils.fromWei(user1_initial_balance));
+        console.log('user2:' + await web3.utils.fromWei(user2_initial_balance));
+        console.log('user3:' + await web3.utils.fromWei(user3_initial_balance));
+        console.log('user4:' + await web3.utils.fromWei(user4_initial_balance));
 
         // TODO: 
         // truffleAssertions.eventEmitted(

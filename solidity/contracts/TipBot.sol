@@ -56,13 +56,11 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     address payable[] memory accountAddress
   ) public payable nonReentrant {
 
-    uint256 distributedAmount = msg.value / accountAddress.length;
+    uint256 distributedAmount = ( ((1 ether - airdropRate) * msg.value ) / 1 ether ) / accountAddress.length;
 
     for(uint8 i = 0; i < accountAddress.length; i++){
 
-      uint256 newBalance = ((1 ether - airdropRate) * distributedAmount)/1 ether;
-
-      (bool success, ) = accountAddress[i].call{value: newBalance }("");
+      (bool success, ) = accountAddress[i].call{value: distributedAmount }("");
       require(success, "Failed to send Token");
 
       emit Tip( 
