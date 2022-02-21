@@ -17,9 +17,14 @@ export class WalletInfoMessageHandler implements MessageHandler {
     }
     const wallet = await this.walletService.getWallet(username);
     let message = `*${username}* is currently not registered.`;
-    if (wallet) {
-      message = `*SYS*\nAddress: ${wallet.address}`;
+    if (!wallet) {
+      await bot.sendMessage(id, "No wallet created yet.");
+      return;
     }
+    const walletLink = `${process.env.EXPLORER_LINK}/address/${
+      wallet!.address
+    }`;
+    message = `*SYS*\nAddress: [${wallet.address}](${walletLink})`;
     await bot.sendMessage(id, message, {
       parse_mode: "Markdown",
       reply_markup: {
@@ -28,10 +33,11 @@ export class WalletInfoMessageHandler implements MessageHandler {
             {
               text: "Check balance 💰",
               callback_data: CallbackData.CheckBalance,
-            }
+            },
           ],
         ],
-      }
+      },
+      disable_web_page_preview: true,
     });
   }
 }
