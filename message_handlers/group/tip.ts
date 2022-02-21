@@ -135,7 +135,7 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     signedTransaction.rawTransaction!
   );
 
-  bot.sendMessage(from!.id, message, {
+  await bot.sendMessage(from!.id, message, {
     parse_mode: "Markdown",
     reply_markup: botMessageService.confirmTxReplyMarkup,
   });

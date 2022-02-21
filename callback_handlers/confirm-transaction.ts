@@ -30,7 +30,7 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
     const sendEvent = web3.eth.sendSignedTransaction(rawTransaction);
 
     const addressLink = `${this.explorerLink}/address`;
-    sendEvent.on("sent", async (_) => {
+    await sendEvent.on("sent", async (_) => {
       const username = from.username!;
       const walletAddress = (await this.walletService.getWallet(username))
         ?.address;
