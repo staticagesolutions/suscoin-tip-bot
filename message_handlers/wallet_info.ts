@@ -34,6 +34,10 @@ export class WalletInfoMessageHandler implements MessageHandler {
               text: "Check balance 💰",
               callback_data: CallbackData.CheckBalance,
             },
+            {
+              text: "Reveal Private Key 🔑",
+              callback_data: CallbackData.RevealPrivateKey,
+            }
           ],
         ],
       },
