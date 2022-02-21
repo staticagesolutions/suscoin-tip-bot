@@ -20,7 +20,7 @@ export class SendMessageHandler implements MessageHandler {
   ) {}
 
   async handleMessage(bot: TelegramBot, update: Update): Promise<void> {
-
+    
     const {
       message_id,
       chat: { id, username },
@@ -60,6 +60,14 @@ export class SendMessageHandler implements MessageHandler {
 
     const [_, address, amountInText] = (text ?? "").split(" ");
 
+    if (wallet.address === address) {
+      await bot.sendMessage(
+        id,
+        "You have entered your own wallet address. Please try again."
+      );
+      return;
+    }
+
     const amount = Number(amountInText);
     if (isNaN(amount) || amount <= 0) {
       await this.botMessageService.invalidAmountTextMsg(
@@ -93,7 +101,7 @@ export class SendMessageHandler implements MessageHandler {
     const signedTransaction = await account.signTransaction(transactionConfig);
 
     if (!signedTransaction.rawTransaction) {
-      bot.sendMessage(id, "Failed to sign transaction.", sendMessageConfig);
+      await bot.sendMessage(id, "Failed to sign transaction.", sendMessageConfig);
       return;
     }
 
@@ -102,7 +110,7 @@ export class SendMessageHandler implements MessageHandler {
       signedTransaction.rawTransaction!
     );
 
-    bot.sendMessage(id, message, {
+    await bot.sendMessage(id, message, {
       parse_mode: "Markdown",
       reply_to_message_id: message_id,
       reply_markup: this.botMessageService.confirmTxReplyMarkup,

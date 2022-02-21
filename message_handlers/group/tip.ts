@@ -123,6 +123,7 @@ export const tip = async (bot: TelegramBot, update: Update) => {
   const transactionConfig =
     await transactionService.getTransactionConfigForContract(amount, data);
 
+
   const signedTransaction = await transactionService.signTransaction(
     tipperWallet.privateKey,
     transactionConfig

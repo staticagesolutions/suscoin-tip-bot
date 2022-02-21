@@ -4,9 +4,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import TelegramBot, { Update } from "node-telegram-bot-api";
 import { messageHandlers } from "../../message_handlers";
 import db from "@db";
-import { callbackHandlers } from "../../callback_handlers";
+import { callbackHandlers, callbackUtils } from "../../callback_handlers";
 
 import { handleGroupMessage } from "message_handlers/group";
+import { CallbackData } from "callback_handlers/enums";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<string>
@@ -39,6 +40,8 @@ export default async function handler(
       );
       if (callbackHandler) {
         await callbackHandler.handleCallback(bot, update);
+      } else if (data === CallbackData.None) {
+        callbackUtils.removeInlineKeyboardOptions(bot,update);
       }
     }
     db.$disconnect();
