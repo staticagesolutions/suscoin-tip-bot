@@ -4,7 +4,7 @@ import * as callbackUtils from "./utils";
 import { walletService } from "services";
 
 const confirmTransactionCallBackHandler =
-  new ConfirmTransactionCallbackHandler();
+  new ConfirmTransactionCallbackHandler(walletService);
 const balanceCallbackHandler = new BalanceCallbackHandler(walletService);
 
 export const callbackHandlers = [
