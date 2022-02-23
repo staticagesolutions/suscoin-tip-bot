@@ -1,12 +1,17 @@
-import TelegramBot, { Update } from "node-telegram-bot-api";
+import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
 import { ActiveAirdropService } from "services/active-airdrop-service";
+import {
+  BotMessageService,
+  MessageConfigI,
+} from "services/bot-message-service";
 import { CallbackData } from "./enums";
 import { CallbackHandler } from "./types";
 
 export class JoinAirdropCallbackHandler implements CallbackHandler {
-
-
-  constructor(private activeAirdropService: ActiveAirdropService){}
+  constructor(
+    private botMessageService: BotMessageService,
+    private activeAirdropService: ActiveAirdropService
+  ) {}
   callbackData = CallbackData.JoinAirdrop;
   async handleCallback(bot: TelegramBot, update: Update): Promise<void> {
     const callbackQuery = update.callback_query!;
@@ -19,7 +24,20 @@ export class JoinAirdropCallbackHandler implements CallbackHandler {
     const chatTitle = message!.chat.title;
     const username = from!.username;
     const userId = from!.id;
+    const sendMessageConfig: SendMessageOptions = {
+      parse_mode: "Markdown",
+    };
 
+    const botMessageConfig: MessageConfigI = {
+      bot,
+      chatId: from!.id,
+      sendMessageConfig,
+    };
+
+    if (!username) {
+      await this.botMessageService.noUsernameMsg(botMessageConfig);
+      return;
+    }
     const administrators = await bot.getChatAdministrators(chatId);
 
     const isAdmin = administrators.find((admin) => {
@@ -50,9 +68,6 @@ export class JoinAirdropCallbackHandler implements CallbackHandler {
       return;
     }
 
-    bot.sendMessage(
-      userId,
-      `You have participated to ${chatTitle}'s airdrop!`
-    );
+    bot.sendMessage(userId, `You have participated to ${chatTitle}'s airdrop!`);
   }
 }
