@@ -23,7 +23,20 @@ export class BotMessageService {
   }
 
   async noRecipientUsernameMsg(config: MessageConfigI): Promise<void> {
-    const message = "Tipping requires both users to have username. Please update your profile.";
+    const message =
+      "Tipping requires both users to have username. Please update your profile.";
+
+    await config.bot.sendMessage(
+      config.chatId,
+      message,
+      config.sendMessageConfig
+    );
+    return;
+  }
+
+  async noUsernameMsg(config: MessageConfigI): Promise<void> {
+    const message =
+      "You did not set your username. Please update your profile.";
 
     await config.bot.sendMessage(
       config.chatId,
@@ -89,6 +102,23 @@ export class BotMessageService {
           {
             text: "yes",
             callback_data: CallbackData.ConfirmTransaction,
+          },
+          {
+            text: "cancel",
+            callback_data: CallbackData.None,
+          },
+        ],
+      ],
+    };
+  }
+
+  confirmAirdropReplyMarkup(messageId: number): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: "yes",
+            callback_data: `${CallbackData.ConfirmAirdropTransaction}:${messageId} `,
           },
           {
             text: "cancel",

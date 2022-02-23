@@ -39,8 +39,12 @@ export const invitedToGroup = async (bot: TelegramBot, update: Update) => {
     [
       ...groupCommands,
       {
-        command: "/airdop",
+        command: "/airdrop",
         description: "Sends airdrop randomly to X people",
+      },
+      {
+        command: "/active_airdrop",
+        description: "Sends airdrop to people who participated",
       },
     ],
     {
