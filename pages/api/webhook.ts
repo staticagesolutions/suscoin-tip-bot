@@ -35,13 +35,15 @@ export default async function handler(
       }
     } else if (update.callback_query) {
       const { data } = update.callback_query;
-      const callbackHandler = callbackHandlers.find(
-        (handler) => handler.callbackData === data
-      );
-      if (callbackHandler) {
-        await callbackHandler.handleCallback(bot, update);
-      } else if (data === CallbackData.None) {
-        callbackUtils.removeInlineKeyboardOptions(bot,update);
+      if (data === CallbackData.None) {
+        await callbackUtils.removeInlineKeyboardOptions(bot, update);
+      } else {
+        const callbackHandler = callbackHandlers.find(
+          (handler) => handler.callbackData === data
+        );
+        if (callbackHandler) {
+          await callbackHandler.handleCallback(bot, update);
+        }
       }
     }
     db.$disconnect();

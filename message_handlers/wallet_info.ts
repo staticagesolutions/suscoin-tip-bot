@@ -24,7 +24,7 @@ export class WalletInfoMessageHandler implements MessageHandler {
     const walletLink = `${process.env.EXPLORER_LINK}/address/${
       wallet!.address
     }`;
-    message = `*SYS*\nAddress: [${wallet.address}](${walletLink})`;
+    message = `*SYS*\nAddress: \`${wallet.address}\`\n[Go to explorer](${walletLink})`;
     await bot.sendMessage(id, message, {
       parse_mode: "Markdown",
       reply_markup: {

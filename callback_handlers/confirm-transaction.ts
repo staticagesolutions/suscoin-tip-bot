@@ -11,7 +11,7 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
   explorerLink = process.env.EXPLORER_LINK ?? "https://explorer.syscoin.org";
 
   async handleCallback(bot: TelegramBot, update: Update): Promise<void> {
-    callbackUtils.removeInlineKeyboardOptions(bot, update);
+    await callbackUtils.removeInlineKeyboardOptions(bot, update);
     const { message, id, from } = update.callback_query!;
     const sendMessageConfig: SendMessageOptions = {
       parse_mode: "Markdown",
@@ -30,36 +30,40 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
     const sendEvent = web3.eth.sendSignedTransaction(rawTransaction);
 
     const addressLink = `${this.explorerLink}/address`;
-    await sendEvent.on("sent", async (_) => {
-      const username = from.username!;
-      const walletAddress = (await this.walletService.getWallet(username))
-        ?.address;
-      await bot.sendMessage(
-        chatId,
-        `The transaction has been sent to the network.\n[Check pending transactions](${addressLink}/${walletAddress})`,
-        {
-          parse_mode: "Markdown",
-          disable_web_page_preview: true,
-        }
-      );
-    });
 
-    sendEvent.on("error", async (err) => {
-      console.log(err.message);
-      await bot.sendMessage(chatId, `${err.message}`);
-    });
-
-    const txLink = `${this.explorerLink}/tx`;
-    sendEvent.on("receipt", async (receipt) => {
-      const txHash = receipt.transactionHash;
-      await bot.sendMessage(
-        chatId,
-        `Transaction was successful\n\nTxHash: ${txHash}\n\nOpen in [explorer](${txLink}/${txHash})`,
-        {
-          parse_mode: "Markdown",
-          disable_web_page_preview: true,
-        }
-      );
+    await new Promise((resolve, reject) => {
+      const txLink = `${this.explorerLink}/tx`;
+      sendEvent
+        .once("sent", async (_) => {
+          const username = from.username!;
+          const walletAddress = (await this.walletService.getWallet(username))
+            ?.address;
+          await bot.sendMessage(
+            chatId,
+            `The transaction has been sent to the network.\n[Check pending transactions](${addressLink}/${walletAddress})`,
+            {
+              parse_mode: "Markdown",
+              disable_web_page_preview: true,
+            }
+          );
+        })
+        .once("receipt", async (receipt) => {
+          const txHash = receipt.transactionHash;
+          await bot.sendMessage(
+            chatId,
+            `Transaction was successful\n\nTxHash: ${txHash}\n\nOpen in [explorer](${txLink}/${txHash})`,
+            {
+              parse_mode: "Markdown",
+              disable_web_page_preview: true,
+            }
+          );
+          resolve(receipt);
+        })
+        .once("error", async (err) => {
+          console.log(err.message);
+          await bot.sendMessage(chatId, `${err.message}`);
+          reject(err);
+        });
     });
   }
 }
