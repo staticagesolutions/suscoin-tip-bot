@@ -70,7 +70,7 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       );
     });
 
-    if (!members.length) {
+    if (members.length === 0) {
       await bot.sendMessage(
         from!.id,
         "There are currently 0 participants in your airdrop",
