@@ -1,10 +1,12 @@
 datasource db {
-  provider = "mysql"
-  url      = env("PLANETSCALE_PRISMA_DATABASE_URL")
+  provider             = "mysql"
+  url                  = env("PLANETSCALE_PRISMA_DATABASE_URL")
+  referentialIntegrity = "prisma"
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
 }
 
 model Wallet {
@@ -14,13 +16,39 @@ model Wallet {
 }
 
 model Chat {
-  chatId BigInt   @unique
+  chatId   BigInt @unique
   username String @unique
 }
 
 model GroupChat {
-  chatId    Int      @unique
-  title     String
-  createAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  chatId          BigInt            @unique
+  title           String
+  createAt        DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  GroupChatMember GroupChatMember[]
+}
+
+model GroupChatMember {
+  userId              BigInt                @unique
+  username            String
+  groupChat           GroupChat             @relation(fields: [groupChatId], references: [chatId])
+  groupChatId         BigInt
+  ActiveAirdropMember ActiveAirdropMember[]
+}
+
+model ActiveAirdropMember {
+  airdropId       Int             @unique @default(autoincrement())
+  messageId       BigInt
+  groupChatId     BigInt
+  userId          BigInt
+  activeAirdrop   ActiveAirdrop   @relation(fields: [messageId], references: [messageId])
+  groupChatMember GroupChatMember @relation(fields: [groupChatId], references: [groupChatId])
+}
+
+model ActiveAirdrop {
+  messageId           BigInt                @unique
+  chatId              BigInt
+  ActiveAirdropMember ActiveAirdropMember[]
+  isActive            Boolean               @default(true)
+  amount              Float
 }

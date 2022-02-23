@@ -23,6 +23,11 @@ export class TransactionService {
     return contract;
   }
 
+  airDrop(addresses: string[]){
+    const contract: TipBotContract = this.getContract()!;
+    return contract.methods.airDrop(addresses).encodeABI();
+  }
+
   tipByContract(recipientAddress: string) {
     const contract: TipBotContract = this.getContract()!;
     return contract.methods.tip(recipientAddress).encodeABI();

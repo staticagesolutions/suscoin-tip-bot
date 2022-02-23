@@ -38,8 +38,8 @@ export default async function handler(
       if (data === CallbackData.None) {
         await callbackUtils.removeInlineKeyboardOptions(bot, update);
       } else {
-        const callbackHandler = callbackHandlers.find(
-          (handler) => handler.callbackData === data
+        const callbackHandler = callbackHandlers.find((handler) =>
+          new RegExp(handler.callbackData).test(data!)
         );
         if (callbackHandler) {
           await callbackHandler.handleCallback(bot, update);
