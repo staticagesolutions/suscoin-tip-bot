@@ -34,10 +34,8 @@ async function isBotNewlyInvited(bot: TelegramBot, update: Update) {
   if (!new_chat_members) {
     return false;
   }
-  const botUsername = (await bot.getMe()).username!;
-  const isBotInvited = new_chat_members.find(
-    (member) => member.username === botUsername
-  );
+  const botId = (await bot.getMe()).id!;
+  const isBotInvited = new_chat_members.find((member) => member.id === botId);
 
   return isBotInvited;
 }

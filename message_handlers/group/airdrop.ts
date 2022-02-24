@@ -18,14 +18,14 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     text,
   } = update.message!;
 
-  const username = from!.username;
+  const userId = from?.id;
 
-  if (!username) {
-    console.error("No username found.", update);
-    return;
+  if (!userId) {
+    console.error("No User Id!", update);
+    throw new Error("No User Id found");
   }
 
-  const isAdmin = await groupHandlerUtils.isAdmin(username, id, bot);
+  const isAdmin = await groupHandlerUtils.isAdmin(userId, id, bot);
 
   if (!isAdmin) {
     console.error("Not an admin.", update);
@@ -42,7 +42,7 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     sendMessageConfig,
   };
 
-  const wallet = await walletService.getWallet(username);
+  const wallet = await walletService.getWallet(userId);
 
   if (!wallet) {
     await botMessageService.noWalletMsg(botMessageConfig);
@@ -81,7 +81,11 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
 
   const members = await groupMemberService.getGroupChatMembers(id);
 
-  if (members.length < numberOfWinners) {
+  if (!members) {
+    throw new Error("No members found");
+  }
+
+  if (members?.length < numberOfWinners) {
     await bot.sendMessage(
       id,
       "Number of currently registered members is lower than specified number of winners"

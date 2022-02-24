@@ -10,14 +10,15 @@ generator client {
 }
 
 model Wallet {
-  username   String @unique
-  address    String @unique
-  privateKey String @unique
+  userId     BigInt  @unique
+  username   String? @unique
+  address    String  @unique
+  privateKey String  @unique
 }
 
 model Chat {
-  chatId   BigInt @unique
-  username String @unique
+  chatId BigInt @unique
+  userId BigInt @unique
 }
 
 model GroupChat {
@@ -29,11 +30,13 @@ model GroupChat {
 }
 
 model GroupChatMember {
-  userId              BigInt                @unique
-  username            String
+  userId              BigInt
+  username            String?
   groupChat           GroupChat             @relation(fields: [groupChatId], references: [chatId])
   groupChatId         BigInt
   ActiveAirdropMember ActiveAirdropMember[]
+
+  @@id([userId, groupChatId])
 }
 
 model ActiveAirdropMember {

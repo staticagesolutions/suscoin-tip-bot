@@ -10,11 +10,12 @@ export class CreateWalletMessageHandler implements MessageHandler {
   constructor(private walletService: WalletService) {}
 
   async handleMessage(bot: TelegramBot, update: Update): Promise<void> {
-    const { chat } = update.message!;
+    const { chat, from } = update.message!;
     const { id: chatId, username } = chat;
-    if (!username) {
-      console.error("No username!", update);
-      throw new Error("Invalid Update. No Username");
+    const userId = from?.id;
+    if (!userId) {
+      console.error("No User Id!", update);
+      throw new Error("No User Id found");
     }
 
     const sendMessageConfig: SendMessageOptions = {
@@ -36,7 +37,7 @@ export class CreateWalletMessageHandler implements MessageHandler {
       },
     };
 
-    const walletExists = await this.walletService.checkIfExist(username);
+    const walletExists = await this.walletService.checkIfExist(userId);
     if (walletExists) {
       await bot.sendMessage(
         chatId,
@@ -48,7 +49,7 @@ export class CreateWalletMessageHandler implements MessageHandler {
 
     const account = web3.eth.accounts.create();
     const { address, privateKey } = account;
-    await this.walletService.saveWallet(username, account);
+    await this.walletService.saveWallet(userId, account, username);
     const message = `Address:\t\t${address}\nPrivateKey:\t\t${privateKey}`;
     await bot.sendMessage(chatId, message, sendMessageConfig);
   }

@@ -23,7 +23,7 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
     }
     const { message, from } = callbackQuery;
 
-    const username = from!.username;
+    const userId = from?.id;
     const chatId = message!.chat.id;
     const sendMessageConfig: SendMessageOptions = {
       parse_mode: "Markdown",
@@ -35,11 +35,11 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       sendMessageConfig,
     };
 
-    if (!username) {
-      console.error("No username found.", update);
-      return;
+    if (!userId) {
+      console.error("No User Id!", update);
+      throw new Error("No User Id found");
     }
-    const isAdmin = await groupHandlerUtils.isAdmin(username, chatId, bot);
+    const isAdmin = await groupHandlerUtils.isAdmin(userId, chatId, bot);
     if (!isAdmin) {
       console.error("User is not an admin");
       return;
@@ -58,6 +58,9 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
     const groupMembers = await groupMemberService.getGroupChatMembers(
       Number(activeAirdrop.chatId)
     );
+    if (!groupMembers) {
+      throw new Error("No members found");
+    }
 
     const airdropMembers = await groupMemberService.getActiveMembers(
       chatId,
@@ -81,7 +84,7 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
 
     const addresses = await groupHandlerUtils.getAddresses(members);
 
-    const wallet = await walletService.getWallet(username);
+    const wallet = await walletService.getWallet(userId);
 
     if (!wallet) {
       await botMessageService.noWalletMsg(botMessageConfig);

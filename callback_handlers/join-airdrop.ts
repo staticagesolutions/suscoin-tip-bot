@@ -1,9 +1,7 @@
-import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
+import groupHandlerUtils from "message_handlers/group/group-handler-utils";
+import TelegramBot, { Update } from "node-telegram-bot-api";
 import { ActiveAirdropService } from "services/active-airdrop-service";
-import {
-  BotMessageService,
-  MessageConfigI,
-} from "services/bot-message-service";
+import { BotMessageService } from "services/bot-message-service";
 import { CallbackData } from "./enums";
 import { CallbackHandler } from "./types";
 
@@ -22,28 +20,12 @@ export class JoinAirdropCallbackHandler implements CallbackHandler {
     const { message, from } = callbackQuery;
     const chatId = message!.chat.id;
     const chatTitle = message!.chat.title;
-    const username = from!.username;
     const userId = from!.id;
-    const sendMessageConfig: SendMessageOptions = {
-      parse_mode: "Markdown",
-    };
 
-    const botMessageConfig: MessageConfigI = {
-      bot,
-      chatId: from!.id,
-      sendMessageConfig,
-    };
+    const isAdmin = await groupHandlerUtils.isAdmin(userId, chatId, bot);
 
-    if (!username) {
-      await this.botMessageService.noUsernameMsg(botMessageConfig);
-      return;
-    }
-    const administrators = await bot.getChatAdministrators(chatId);
-
-    const isAdmin = administrators.find((admin) => {
-      return admin.user.username === username;
-    });
     if (isAdmin) {
+      console.error("Is an admin.", update);
       return;
     }
 

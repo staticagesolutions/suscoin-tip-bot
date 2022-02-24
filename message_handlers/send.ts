@@ -9,7 +9,6 @@ import web3 from "services/web3";
 import { TransactionConfig } from "web3-core";
 import { MessageHandler } from "./types";
 
-
 export class SendMessageHandler implements MessageHandler {
   identifier = /\/send*/g;
 
@@ -20,11 +19,11 @@ export class SendMessageHandler implements MessageHandler {
   ) {}
 
   async handleMessage(bot: TelegramBot, update: Update): Promise<void> {
-    
     const {
       message_id,
-      chat: { id, username },
+      chat: { id },
       text,
+      from,
     } = update.message!;
     const sendMessageConfig: SendMessageOptions = {
       parse_mode: "Markdown",
@@ -37,11 +36,14 @@ export class SendMessageHandler implements MessageHandler {
       sendMessageConfig,
     };
 
-    if (!username) {
-      console.error("No username found.", update);
-      return;
+    const userId = from?.id;
+
+    if (!userId) {
+      console.error("No User Id!", update);
+      throw new Error("No User Id found");
     }
-    const wallet = await this.walletService.getWallet(username);
+
+    const wallet = await this.walletService.getWallet(userId);
 
     if (!wallet) {
       await this.botMessageService.noWalletMsg(botMessageConfig);
@@ -101,7 +103,11 @@ export class SendMessageHandler implements MessageHandler {
     const signedTransaction = await account.signTransaction(transactionConfig);
 
     if (!signedTransaction.rawTransaction) {
-      await bot.sendMessage(id, "Failed to sign transaction.", sendMessageConfig);
+      await bot.sendMessage(
+        id,
+        "Failed to sign transaction.",
+        sendMessageConfig
+      );
       return;
     }
 
