@@ -11,15 +11,19 @@ export class PrivateKeyCallbackHandler implements CallbackHandler {
   constructor(private walletService: WalletService) {}
 
   async handleCallback(bot: TelegramBot, update: Update): Promise<void> {
+    const { message, from } = update.callback_query!;
     const {
-      chat: { id, username },
-    } = update.callback_query!.message!;
-    
-    if (!username) {
-      console.error("No username found.", update);
-      return;
+      chat: { id },
+    } = message!;
+
+    const userId = from?.id;
+
+    if (!userId) {
+      console.error("No User Id!", update);
+      throw new Error("No User Id found");
     }
-    const wallet = await this.walletService.getWallet(username);
+
+    const wallet = await this.walletService.getWallet(userId);
     if (!wallet) {
       bot.sendMessage(id, "No wallet created yet.");
       return;

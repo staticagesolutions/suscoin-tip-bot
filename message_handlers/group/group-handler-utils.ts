@@ -28,17 +28,19 @@ async function selectWinners(
 async function getAddresses(winners: GroupChatMember[]) {
   return await Promise.all(
     winners.map(async (winner) => {
-      const wallet = await walletService.getOrCreateWallet(winner.username);
+      const wallet = await walletService.getOrCreateWallet(
+        Number(winner.userId)
+      );
       return wallet!.address;
     })
   );
 }
 
-async function isAdmin(username: string, chatId: number, bot: TelegramBot) {
+async function isAdmin(userId: number, chatId: number, bot: TelegramBot) {
   const administrators = await bot.getChatAdministrators(chatId);
 
   const isAdmin = administrators.find((admin) => {
-    return admin.user.username === username;
+    return admin.user.id === userId;
   });
   return isAdmin;
 }

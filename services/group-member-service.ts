@@ -10,22 +10,22 @@ export class GroupMemberService {
     } = update.message!;
 
     const username = from!.username;
-    const memberId = from!.id;
-    if (!username) {
-      throw new Error("No username found.");
-    }
+    const userId = from!.id;
     return db.groupChatMember.upsert({
       create: {
         groupChatId: id,
         username: username,
-        userId: memberId,
+        userId: userId,
       },
       update: {
         groupChatId: id,
         username: username,
       },
       where: {
-        userId: memberId,
+        userId_groupChatId: {
+          userId: userId,
+          groupChatId: id,
+        },
       },
     });
   }
@@ -33,7 +33,7 @@ export class GroupMemberService {
   async registerMemberByCallback(callbackQuery: CallbackQuery) {
     const { message, from } = callbackQuery!;
     const username = from!.username!;
-    const userId = from!.id;
+    const userId = from!.id!;
     const groupChatId = message?.chat.id!;
 
     if (from.is_bot) {
@@ -50,7 +50,10 @@ export class GroupMemberService {
         username: username,
       },
       where: {
-        userId: userId,
+        userId_groupChatId: {
+          userId: userId,
+          groupChatId: groupChatId,
+        },
       },
     });
   }
@@ -93,7 +96,7 @@ export class GroupMemberService {
   }
 
   async getGroupChatMembers(chatId: number) {
-    return (await this.getGroupChatAndMembers(chatId))!.GroupChatMember;
+    return (await this.getGroupChatAndMembers(chatId))?.GroupChatMember;
   }
 
   async getActiveMembers(groupChatId: number, messageId: number) {

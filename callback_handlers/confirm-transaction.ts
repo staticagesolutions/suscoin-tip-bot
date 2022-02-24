@@ -35,8 +35,8 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
       const txLink = `${this.explorerLink}/tx`;
       sendEvent
         .once("sent", async (_) => {
-          const username = from.username!;
-          const walletAddress = (await this.walletService.getWallet(username))
+          const userId = from.id!;
+          const walletAddress = (await this.walletService.getWallet(userId))
             ?.address;
           await bot.sendMessage(
             chatId,

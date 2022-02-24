@@ -11,12 +11,14 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
     message_id,
   } = update.message!;
 
-  const username = from!.username;
-  if (!username) {
-    console.error("No username found.", update);
-    return;
+  const userId = from?.id;
+
+  if (!userId) {
+    console.error("No User Id!", update);
+    throw new Error("No User Id found");
   }
-  const isAdmin = await groupHandlerUtils.isAdmin(username, id, bot);
+
+  const isAdmin = await groupHandlerUtils.isAdmin(userId, id, bot);
 
   if (!isAdmin) {
     console.error("User is not an admin");

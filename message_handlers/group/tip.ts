@@ -1,4 +1,8 @@
-import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
+import TelegramBot, {
+  SendMessageOptions,
+  Update,
+  User,
+} from "node-telegram-bot-api";
 import { botMessageService, transactionService, walletService } from "services";
 import { MessageConfigI } from "services/bot-message-service";
 import web3 from "services/web3";
@@ -30,11 +34,11 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
-  const username = from!.username;
+  const tipperUser = from!;
 
-  if (!username) {
-    console.error("No username found.", update);
-    return;
+  if (!tipperUser.id) {
+    console.error("No User Id!", update);
+    throw new Error("No User Id found");
   }
 
   const sendMessageConfig: SendMessageOptions = {
@@ -48,7 +52,7 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     sendMessageConfig,
   };
 
-  const tipperWallet = await walletService.getWallet(username);
+  const tipperWallet = await walletService.getWallet(tipperUser.id);
 
   if (!tipperWallet) {
     await botMessageService.noWalletMsg(botMessageConfig);
@@ -96,15 +100,13 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
-  const recipientUsername = replyFrom!.username;
+  const recipientUser = replyFrom!;
 
-  if (!recipientUsername) {
-    await botMessageService.noRecipientUsernameMsg(botMessageConfig);
-    return;
+  if (!recipientUser.id) {
+    console.error("No User Id!", update);
+    throw new Error("No User Id found");
   }
-  let recipientWallet = await walletService.getOrCreateWallet(
-    recipientUsername
-  );
+  let recipientWallet = await walletService.getOrCreateWallet(recipientUser.id);
   if (!recipientWallet) {
     const message = "Failed to get recipient wallet.";
     await bot.sendMessage(id, message, sendMessageConfig);
@@ -123,14 +125,14 @@ export const tip = async (bot: TelegramBot, update: Update) => {
   const transactionConfig =
     await transactionService.getTransactionConfigForContract(amount, data);
 
-
   const signedTransaction = await transactionService.signTransaction(
     tipperWallet.privateKey,
     transactionConfig
   );
 
   let message = generateBotMessage(
-    username,
+    tipperUser!,
+    recipientUser!,
     transactionConfig,
     signedTransaction.rawTransaction!
   );
@@ -142,7 +144,8 @@ export const tip = async (bot: TelegramBot, update: Update) => {
 };
 
 function generateBotMessage(
-  recipientUsername: string,
+  tipperUser: User,
+  recipientUser: User,
   transactionConfig: TransactionConfig,
   rawTransaction: string
 ) {
@@ -150,6 +153,9 @@ function generateBotMessage(
     transactionConfig.value!.toString(),
     "ether"
   );
+  const from = `${tipperUser.first_name} ${tipperUser.last_name} (@${tipperUser.username})`;
 
-  return `Confirming your transaction:\n\nUsername: ${recipientUsername}\nAddress: ${transactionConfig.to}\nAmount: ${amountFromWei}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
+  const to = `${recipientUser.first_name} ${recipientUser.last_name} (@${recipientUser.username})`;
+
+  return `Confirming your transaction:\n\nFrom: ${from}\nTo Username: ${to}\n\nAmount: ${amountFromWei}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
 }
