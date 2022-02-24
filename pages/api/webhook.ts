@@ -23,7 +23,7 @@ export default async function handler(
         chat: { type },
       } = update.message;
       if (type === "group" || type === "supergroup") {
-        handleGroupMessage(bot, update);
+        await handleGroupMessage(bot, update);
       } else {
         const command = text!;
         const messageHandler = messageHandlers.find((handler) =>
