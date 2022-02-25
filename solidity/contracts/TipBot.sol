@@ -6,11 +6,6 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-
-abstract contract BridgeERC20 is ERC20Burnable {
-  function mint( address account, uint256 amount ) public virtual;
-}
 
 contract TipBot is AccessControlEnumerable, ReentrancyGuard {
   using ECDSA for bytes32;
@@ -23,6 +18,8 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
   // Global variables used in contract
   uint256 public feeRate = 0.1 ether;
   uint256 public airdropRate = 0.2 ether;
+
+  mapping(address => bool) signatureLookup;
 
   constructor(){
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -87,8 +84,12 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     for (uint8 i = 0; i < signatures.length; i++) {
         bytes calldata signature = signatures[i];
         address signer = hashed.recover(signature);
-        if (hasRole(DEFAULT_ADMIN_ROLE, signer)) {
+
+        require( !signatureLookup[signer], "Repeating admin signature not valid");
+
+        if (hasRole(DEFAULT_ADMIN_ROLE, signer) && !signatureLookup[signer]) {
             validSignatures += 1;
+            signatureLookup[signer] = true;
         }
     }
     require( validSignatures == getRoleMemberCount(DEFAULT_ADMIN_ROLE), "Not all signatures are valid");
