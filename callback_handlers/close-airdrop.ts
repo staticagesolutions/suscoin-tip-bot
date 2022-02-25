@@ -58,7 +58,12 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
     const groupMembers = await groupMemberService.getGroupChatMembers(
       Number(activeAirdrop.chatId)
     );
+
     if (!groupMembers) {
+      await bot.sendMessage(
+        userId,
+        `There are no users registered in the group chat: ${message?.chat.title}`
+      );
       throw new Error("No members found");
     }
 

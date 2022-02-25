@@ -83,14 +83,19 @@ export class GroupMemberService {
   }
 
   async getGroupChatAndMembers(chatId: number) {
-    const result = await db.groupChat.findUnique({
-      where: {
-        chatId: chatId,
-      },
-      include: {
-        GroupChatMember: true,
-      },
-    });
+    let result;
+    try {
+      result = await db.groupChat.findUnique({
+        where: {
+          chatId: chatId,
+        },
+        include: {
+          GroupChatMember: true,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
 
     return result;
   }
@@ -104,6 +109,15 @@ export class GroupMemberService {
       where: {
         groupChatId,
         messageId,
+      },
+    });
+  }
+
+  async createNewChatGroup(migrateChatId: number, title: string) {
+    return db.groupChat.create({
+      data: {
+        chatId: migrateChatId,
+        title: title,
       },
     });
   }

@@ -13,7 +13,7 @@ import groupHandlerUtils from "./group-handler-utils";
 
 export const airdrop = async (bot: TelegramBot, update: Update) => {
   const {
-    chat: { id },
+    chat: { id, title },
     from,
     text,
   } = update.message!;
@@ -82,6 +82,10 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
   const members = await groupMemberService.getGroupChatMembers(id);
 
   if (!members) {
+    await bot.sendMessage(
+      userId,
+      `There are no users registered in the group chat: ${title}`
+    );
     throw new Error("No members found");
   }
 
