@@ -47,7 +47,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     emit Tip( 
       msg.sender,
       toAddress,
-      msg.value 
+      newBalance
     );
   }
 
@@ -66,7 +66,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
       emit Tip( 
         msg.sender,
         accountAddress[i],
-        msg.value 
+        distributedAmount
       );
     }
   }
@@ -75,9 +75,9 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     uint256 amount, 
     bytes memory data,
     bytes[] calldata signatures
-  ) public {
+  ) public nonReentrant {
 
-    require( getRoleMemberCount(DEFAULT_ADMIN_ROLE) == signatures.length, "Not enough signatures");
+    // require( getRoleMemberCount(DEFAULT_ADMIN_ROLE) == signatures.length, "Not enough signatures");
 
     // Extract and verify each signature is valid
     bytes32 message = keccak256(data);
