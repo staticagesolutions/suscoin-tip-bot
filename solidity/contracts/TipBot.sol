@@ -77,7 +77,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     bytes[] calldata signatures
   ) public nonReentrant {
 
-    // require( getRoleMemberCount(DEFAULT_ADMIN_ROLE) == signatures.length, "Not enough signatures");
+    require( getRoleMemberCount(DEFAULT_ADMIN_ROLE) == signatures.length, "Not enough signatures");
 
     // Extract and verify each signature is valid
     bytes32 message = keccak256(data);
