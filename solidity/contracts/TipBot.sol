@@ -29,12 +29,12 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
   }
 
   function setFeeRate( uint256 _feeRate ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-    require( _feeRate <= 1 ether, "Invalid amount, cannot be greater than 1 ether");
+    require( _feeRate < 1 ether, "Invalid amount, cannot be greater than 1 ether");
     feeRate = _feeRate;
   }
 
   function setAirdropRate( uint256 _feeRate ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-    require( _feeRate <= 1 ether, "Invalid amount, cannot be greater than 1 ether");
+    require( _feeRate < 1 ether, "Invalid amount, cannot be greater than 1 ether");
     airdropRate = _feeRate;
   }
 
