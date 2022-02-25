@@ -8,8 +8,6 @@ contract("TipBot", (accounts)=>{
     const [ admin1, admin2, user1, user2, user3, user4 ] = accounts;
     before( async ()=>{
         tipbot = await TipBot.deployed();
-        tipbot.grantRole(web3.utils.fromAscii("DEFAULT_ADMIN_ROLE"), admin1);
-        tipbot.grantRole(web3.utils.fromAscii("DEFAULT_ADMIN_ROLE"), admin2);
     }); 
 
     it("Should have a feeRate of 0.1 eth", async () => {
@@ -26,6 +24,91 @@ contract("TipBot", (accounts)=>{
         expect(feeRateEth).to.be.equal('0.2');
     });
 
+
+    it("Should be able to receive tip event from user1 to user2", async () => {
+
+        // Set this as transfer value
+        const transferValue = 1;
+        const feeRate = await tipbot.feeRate();
+        const feeRateEth = await web3.utils.fromWei(feeRate);
+
+        // Trigger smart contract action
+        const eventTip = await tipbot.tip(user2,{from: user1, value: web3.utils.toWei( transferValue.toString() )});
+
+        const newValue = ((1 - parseFloat(feeRateEth)) * transferValue) / 1;
+
+        expectEvent( eventTip, 'Tip', {
+            from: user1,
+            toAddress: user2,
+            amount: web3.utils.toWei(newValue.toString())
+        });
+    });
+
+    it("Should be able to do airDrop to multiple users user1, user2, user3", async () => {
+
+        // Set this as transfer value
+        const transferValue = 2;
+        const airDropRate = await tipbot.airdropRate();
+        const airDropRateEth = await web3.utils.fromWei(airDropRate);
+
+        const airdrop_address = [user1, user2, user3, user4];
+        const airDropEvent = await tipbot.airDrop(airdrop_address,{from: admin1, value: web3.utils.toWei(transferValue.toString())});
+
+        //Compute for the distributed value
+        const distributedValue = (((1 - parseFloat(airDropRateEth)) * transferValue) / 1) / airdrop_address.length;
+
+        expectEvent( airDropEvent, 'Tip', {
+            from: admin1,
+            toAddress: user1,
+            amount: web3.utils.toWei(distributedValue.toString())
+        });
+
+        expectEvent( airDropEvent, 'Tip', {
+            from: admin1,
+            toAddress: user2,
+            amount: web3.utils.toWei(distributedValue.toString())
+        });
+
+        expectEvent( airDropEvent, 'Tip', {
+            from: admin1,
+            toAddress: user3,
+            amount: web3.utils.toWei(distributedValue.toString())
+        });
+
+        expectEvent( airDropEvent, 'Tip', {
+            from: admin1,
+            toAddress: user4,
+            amount: web3.utils.toWei(distributedValue.toString())
+        });
+
+    });
+
+    it("Should allow user1 to withdraw", async() => {
+
+        const adminRole = await tipbot.DEFAULT_ADMIN_ROLE();
+        const administrator1 = web3.eth.accounts.create();
+        const administrator2 = web3.eth.accounts.create();
+        tipbot.grantRole(adminRole, administrator1.address);
+        // tipbot.grantRole(adminRole, administrator2.address);
+
+        const withdrawAmount = 2;
+        const encoded = web3.eth.abi.encodeParameter('uint256', withdrawAmount.toString());
+        const hashed = web3.utils.sha3(encoded);
+
+        // const signatures = [ 
+        //     administrator1.sign(hashed).signature, 
+        //     administrator2.sign(hashed).signature
+        // ];
+        const signatures = [ 
+            administrator1.sign(hashed).signature
+        ];
+        console.log('sig length: ' + signatures);
+        console.log('sig length: ' + signatures.length);
+        console.log('adminRole: ' +  await tipbot.getRoleMemberCount(adminRole))
+        await tipbot.withdraw( withdrawAmount.toString(), encoded, signatures ); 
+
+    });
+
     it("Should be able change airDrop rate not greater than 1 eth", async() => {
         await tipbot.setAirdropRate( web3.utils.toWei('0.4'));
         const feeRate = await tipbot.airdropRate();
@@ -33,66 +116,18 @@ contract("TipBot", (accounts)=>{
         expect(feeRateEth).to.be.equal('0.4');
     });
 
-    it("Should be able to receive tip event from user1 to user2", async () => {
-
-        let user1_initial_balance = await web3.eth.getBalance(user1);
-        let user2_initial_balance = await web3.eth.getBalance(user2);
-
-        const eventTip = await tipbot.tip(user2,{from: user1, value: web3.utils.toWei('1')});
-
-        expectEvent( eventTip, 'Tip', {
-            from: user1,
-            toAddress: user2,
-            amount: web3.utils.toWei('1')
-        });
-
-    });
-
-    it("Should be able to do airDrop to multiple users user1, user2, user3", async () => {
-
-        let user1_initial_balance = await web3.eth.getBalance(user1);
-        console.log(user1_initial_balance);
-        let user2_initial_balance = await web3.eth.getBalance(user2);
-        console.log(user2_initial_balance);
-        let user3_initial_balance = await web3.eth.getBalance(user3);
-        console.log(user3_initial_balance);
-        let user4_initial_balance = await web3.eth.getBalance(user4);
-        console.log(user4_initial_balance);
-
-        const airdrop_address = [user1, user2, user3, user4];
-        const airDropEvent = await tipbot.airDrop(airdrop_address,{from: admin1, value: web3.utils.toWei('2')});
-
-        expectEvent( airDropEvent, 'Tip', {
-            from: admin1,
-            toAddress: user1,
-            amount: web3.utils.toWei('2')
-        });
-
-        expectEvent( airDropEvent, 'Tip', {
-            from: admin1,
-            toAddress: user2,
-            amount: web3.utils.toWei('2')
-        });
-
-        expectEvent( airDropEvent, 'Tip', {
-            from: admin1,
-            toAddress: user3,
-            amount: web3.utils.toWei('2')
-        });
-
-        expectEvent( airDropEvent, 'Tip', {
-            from: admin1,
-            toAddress: user4,
-            amount: web3.utils.toWei('2')
-        });
-
+    it("Should not be able to send more than account's balance", async() => {
+        await expectRevert(
+            tipbot.tip(user2,{from: user1, value: web3.utils.toWei('200')}),
+            "sender doesn't have enough funds to send tx"
+        );
     });
 
 }); 
 
 describe('TipBot Failing Test', ()=>{
     beforeEach(async function(){
-        this.tipbot = await TipBot.new()
+        this.tipbot = await TipBot.deployed()
     });
 
     it("Should not be able change feerate not greater than 1 eth", async() => {
@@ -118,6 +153,4 @@ describe('TipBot Failing Test', ()=>{
             }), 'Invalid amount, cannot be greater than 1 ether'
         );
     });
-
-
 });
