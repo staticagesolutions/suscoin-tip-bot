@@ -1,4 +1,5 @@
 import TelegramBot, { Update } from "node-telegram-bot-api";
+import { groupMemberService } from "services";
 import { airdrop } from "./airdrop";
 import { createActiveAirdrop } from "./airdrop-active";
 import { invitedToGroup } from "./group-invited";
@@ -7,8 +8,20 @@ import { register } from "./register";
 import { tip } from "./tip";
 
 export const handleGroupMessage = async (bot: TelegramBot, update: Update) => {
-  const { text, group_chat_created } = update.message!;
-  console.log("Group Message Text:", text);
+  const { text, group_chat_created, migrate_to_chat_id, chat } =
+    update.message!;
+
+  if (migrate_to_chat_id) {
+    await groupMemberService.createNewChatGroup(
+      migrate_to_chat_id,
+      chat.title!
+    );
+    await bot.sendMessage(
+      migrate_to_chat_id,
+      "@everyone\n\nThere is a change in Group Chat Settings.\nPlease type /register again to join future airdrops."
+    );
+    return;
+  }
 
   const isBotInvited = await isBotNewlyInvited(bot, update);
   if (group_chat_created || isBotInvited) {
