@@ -8,6 +8,8 @@ contract("TipBot", (accounts)=>{
     const [ admin1, admin2, user1, user2, user3, user4 ] = accounts;
     before( async ()=>{
         tipbot = await TipBot.deployed();
+        tipbot.grantRole(web3.utils.fromAscii("DEFAULT_ADMIN_ROLE"), admin1);
+
     }); 
 
     it("Should have a feeRate of 0.1 eth", async () => {
@@ -83,29 +85,28 @@ contract("TipBot", (accounts)=>{
 
     });
 
-    it("Should allow user1 to withdraw", async() => {
+    it("Should not allow to withdraw when there are repeating signatures", async() => {
 
         const adminRole = await tipbot.DEFAULT_ADMIN_ROLE();
         const administrator1 = web3.eth.accounts.create();
         const administrator2 = web3.eth.accounts.create();
         tipbot.grantRole(adminRole, administrator1.address);
-        // tipbot.grantRole(adminRole, administrator2.address);
+        tipbot.grantRole(adminRole, administrator2.address);
 
         const withdrawAmount = 2;
         const encoded = web3.eth.abi.encodeParameter('uint256', withdrawAmount.toString());
         const hashed = web3.utils.sha3(encoded);
 
-        // const signatures = [ 
-        //     administrator1.sign(hashed).signature, 
-        //     administrator2.sign(hashed).signature
-        // ];
         const signatures = [ 
+            administrator1.sign(hashed).signature,
+            administrator1.sign(hashed).signature,
             administrator1.sign(hashed).signature
         ];
-        console.log('sig length: ' + signatures);
-        console.log('sig length: ' + signatures.length);
-        console.log('adminRole: ' +  await tipbot.getRoleMemberCount(adminRole))
-        await tipbot.withdraw( withdrawAmount.toString(), encoded, signatures ); 
+
+        await expectRevert( 
+            tipbot.withdraw( withdrawAmount.toString(), encoded, signatures ),
+            'Repeating admin signature not valid'
+        );
 
     });
 
@@ -122,6 +123,15 @@ contract("TipBot", (accounts)=>{
             "sender doesn't have enough funds to send tx"
         );
     });
+
+    //TODO: cannot test if invalid address
+    // it("Should not be able to send to an invalid address", async() => {
+    //     console.log(admin2);
+    //     await expectRevert(
+    //         tipbot.tip("1x4d09dB42d8262731311269DB01bca4eDDa099D83",{from: user1, value: web3.utils.toWei('0.1')}),
+    //         'Failed to send Token'
+    //     );
+    // });
 
 }); 
 
