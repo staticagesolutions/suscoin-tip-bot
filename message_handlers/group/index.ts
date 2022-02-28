@@ -2,6 +2,8 @@ import TelegramBot, { Update } from "node-telegram-bot-api";
 import { groupChatService } from "services";
 import { airdrop } from "./airdrop";
 import { createActiveAirdrop } from "./airdrop-active";
+import { commands } from "./commands";
+import groupHandlerUtils from "./group-handler-utils";
 import { invitedToGroup } from "./group-invited";
 import { help } from "./help";
 import { register } from "./register";
@@ -35,17 +37,32 @@ export const handleGroupMessage = async (bot: TelegramBot, update: Update) => {
     await createActiveAirdrop(bot, update);
   } else if (/\/airdrop/g.test(command)) {
     await airdrop(bot, update);
+  } else if (/\/commands/g.test(command)) {
+    await commands(bot, update);
   }
+
   return;
 };
 
 async function isBotNewlyInvited(bot: TelegramBot, update: Update) {
-  const { new_chat_members } = update.message!;
+  const {
+    new_chat_members,
+    from,
+    chat: { id },
+  } = update.message!;
   if (!new_chat_members) {
     return false;
   }
   const botId = (await bot.getMe()).id!;
   const isBotInvited = new_chat_members.find((member) => member.id === botId);
+
+  const isAdmin = await groupHandlerUtils.isAdmin(from!.id, id, bot);
+
+  if (!isAdmin && isBotInvited) {
+    await bot.sendMessage(id, "Only Group Admins can add me.");
+    await bot.leaveChat(id);
+    throw new Error("A member is trying to add a bot");
+  }
 
   return isBotInvited;
 }

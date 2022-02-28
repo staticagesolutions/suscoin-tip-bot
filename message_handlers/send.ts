@@ -43,24 +43,36 @@ export class SendMessageHandler implements MessageHandler {
       throw new Error("No User Id found");
     }
 
+    const tokens = (text ?? "").split(" ");
+
+    const properSyntax = "Must be: `/send <address> <amount>`";
+
+    if (tokens.length !== 3) {
+      await bot.sendMessage(
+        id,
+        `*Invalid Syntax*:\n${properSyntax}`,
+        sendMessageConfig
+      );
+      return;
+    }
+
+    const [_, address, amountInText] = (text ?? "").split(" ");
+
+    if (!web3.utils.isAddress(address)) {
+      await bot.sendMessage(
+        id,
+        `*Invalid wallet address.*\n${properSyntax}`,
+        sendMessageConfig
+      );
+      return;
+    }
+
     const wallet = await this.walletService.getWallet(userId);
 
     if (!wallet) {
       await this.botMessageService.noWalletMsg(botMessageConfig);
       return;
     }
-
-    const tokens = (text ?? "").split(" ");
-
-    if (tokens.length !== 3) {
-      await this.botMessageService.invalidArgumentLengthMsg(
-        `${text}`,
-        botMessageConfig
-      );
-      return;
-    }
-
-    const [_, address, amountInText] = (text ?? "").split(" ");
 
     if (wallet.address === address) {
       await bot.sendMessage(

@@ -42,19 +42,16 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     sendMessageConfig,
   };
 
-  const wallet = await walletService.getWallet(userId);
-
-  if (!wallet) {
-    await botMessageService.noWalletMsg(botMessageConfig);
-    return;
-  }
-
   const tokens = (text ?? "").split(" ");
 
+
+  const properSyntax = "Must be: `/airdrop <amount> <count>`";
+    
   if (tokens.length !== 3) {
-    await botMessageService.invalidArgumentLengthMsg(
-      `${text}`,
-      botMessageConfig
+    await bot.sendMessage(
+      id,
+      `*Invalid Syntax*:\n${properSyntax}`,
+      sendMessageConfig
     );
     return;
   }
@@ -78,7 +75,7 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     );
     return;
   }
-  console.log(id);
+
   const members = await groupMemberService.getGroupChatMembers(id);
 
   if (!members) {
@@ -94,6 +91,13 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
       id,
       "Number of currently registered members is lower than specified number of winners"
     );
+    return;
+  }
+
+  const wallet = await walletService.getWallet(userId);
+
+  if (!wallet) {
+    await botMessageService.noWalletMsg(botMessageConfig);
     return;
   }
 

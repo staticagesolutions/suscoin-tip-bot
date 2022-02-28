@@ -68,17 +68,18 @@ export const tip = async (bot: TelegramBot, update: Update) => {
   }
 
   const tokens = (text ?? "").split(" ");
-
+  const properSyntax = "Must be: `/tip <amount>`";
   if (tokens.length !== 2) {
-    await botMessageService.invalidArgumentLengthMsg(
-      `${text}`,
-      botMessageConfig
+    await bot.sendMessage(
+      id,
+      `*Invalid Syntax*:\n${properSyntax}`,
+      sendMessageConfig
     );
     return;
   }
   const [_, amountInText] = (text ?? "").split(" ");
 
-  const { message_id: replyMessageId, from: replyFrom } = reply_to_message;
+  const { from: replyFrom } = reply_to_message;
 
   const amount = Number(amountInText);
   if (isNaN(amount) || amount <= 0) {

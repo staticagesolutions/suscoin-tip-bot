@@ -1,10 +1,7 @@
-import TelegramBot, {
-  Update,
-  BotCommandScopeAllGroupChats,
-  BotCommand,
-} from "node-telegram-bot-api";
+import TelegramBot, { Update } from "node-telegram-bot-api";
 
 import db from "@db";
+import { botCommands } from "../../shared/utils";
 
 export const invitedToGroup = async (bot: TelegramBot, update: Update) => {
   const {
@@ -20,39 +17,6 @@ export const invitedToGroup = async (bot: TelegramBot, update: Update) => {
     return true;
   }
   await db.groupChat.create({ data: { chatId: id, title } });
-  const groupCommands: BotCommand[] = [
-    {
-      command: "/help",
-      description: "Description for help here",
-    },
-    {
-      command: "/tip",
-      description: "Description for help here",
-    },
-  ];
-  await bot.setMyCommands(groupCommands, {
-    scope: {
-      type: "all_group_chats",
-    },
-  });
-  await bot.setMyCommands(
-    [
-      ...groupCommands,
-      {
-        command: "/airdrop",
-        description: "Sends airdrop randomly to X people",
-      },
-      {
-        command: "/active_airdrop",
-        description: "Sends airdrop to people who participated",
-      },
-    ],
-    {
-      scope: {
-        type: "all_chat_administrators",
-      },
-    }
-  );
-
+  await bot.setMyCommands(botCommands.standardCommands);
   console.log(`Invited to Group: [${id}] \"${title}\"`);
 };
