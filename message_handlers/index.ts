@@ -9,6 +9,7 @@ import { StartMessageHandler } from "./start";
 import { SendMessageHandler } from "./send";
 import { WalletInfoMessageHandler } from "./wallet_info";
 import { HelpMessageHandler } from "./help";
+import { CommandsMessageHandler } from "./commands";
 
 export const messageHandlers = [
   new StartMessageHandler(chatService),
@@ -16,4 +17,5 @@ export const messageHandlers = [
   new CreateWalletMessageHandler(walletService),
   new SendMessageHandler(walletService, transactionService, botMessageService),
   new HelpMessageHandler(),
+  new CommandsMessageHandler()
 ];

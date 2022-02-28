@@ -3,6 +3,7 @@ import { ChatService } from "services/chat-service";
 import { MessageHandler } from "./types";
 import fs from "fs";
 import path from "path";
+import { botCommands } from "../shared/utils";
 
 export class StartMessageHandler implements MessageHandler {
   identifier = /\/start*/g;
@@ -10,22 +11,8 @@ export class StartMessageHandler implements MessageHandler {
   async handleMessage(bot: TelegramBot, update: Update): Promise<void> {
     const {
       chat: { id },
-      text,
     } = update.message!;
     const message = this.generateStartMessage();
-
-    const privateChatCommands: BotCommand[] = [
-      {
-        command: "/send",
-        description: "<address> <amount>",
-      },
-    ];
-
-    await bot.setMyCommands(privateChatCommands, {
-      scope: {
-        type: "all_private_chats",
-      },
-    });
 
     await this.chatService.registerChatId(update);
     await bot.sendMessage(id, message, {
@@ -40,6 +27,11 @@ export class StartMessageHandler implements MessageHandler {
             },
           ],
         ],
+      },
+    });
+    await bot.setMyCommands(botCommands.standardCommands, {
+      scope: {
+        type: "all_group_chats",
       },
     });
   }

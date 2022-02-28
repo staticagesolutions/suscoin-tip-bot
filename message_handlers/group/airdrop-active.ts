@@ -35,10 +35,13 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
   };
   const tokens = (text ?? "").split(" ");
 
+  const properSyntax = "Must be: `/active_airdrop <amount> <count>`";
+
   if (tokens.length !== 3) {
-    await botMessageService.invalidArgumentLengthMsg(
-      `${text}`,
-      botMessageConfig
+    await bot.sendMessage(
+      id,
+      `*Invalid Syntax*:\n${properSyntax}`,
+      sendMessageConfig
     );
     return;
   }
