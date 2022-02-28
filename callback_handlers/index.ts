@@ -3,6 +3,7 @@ import { ConfirmTransactionCallbackHandler } from "./confirm-transaction";
 import * as callbackUtils from "./utils";
 import {
   activeAirdropService,
+  airdropMemberService,
   botMessageService,
   walletService,
 } from "services";
@@ -18,7 +19,8 @@ const balanceCallbackHandler = new BalanceCallbackHandler(walletService);
 const privateKeyCallbackHandler = new PrivateKeyCallbackHandler(walletService);
 const activeAirdropCallbackHandler = new JoinAirdropCallbackHandler(
   botMessageService,
-  activeAirdropService
+  activeAirdropService,
+  airdropMemberService
 );
 const closeAirdropCallbackHandler = new CloseAirdropCallbackHandler();
 const confirmAirdropCallbackHandler = new ActiveAirdropCallbackHandler(

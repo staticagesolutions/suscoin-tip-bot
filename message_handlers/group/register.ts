@@ -1,36 +1,23 @@
-import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
-import { botMessageService, groupMemberService } from "services";
-import { MessageConfigI } from "services/bot-message-service";
+import TelegramBot, { Update } from "node-telegram-bot-api";
+import { groupMemberService } from "services";
+import groupHandlerUtils from "./group-handler-utils";
 export const register = async (bot: TelegramBot, update: Update) => {
   const {
     chat: { id, title },
     from,
   } = update.message!;
 
-  const sendMessageConfig: SendMessageOptions = {
-    parse_mode: "Markdown",
-  };
+  const userId = from?.id;
 
-  const botMessageConfig: MessageConfigI = {
-    bot,
-    chatId: from!.id,
-    sendMessageConfig,
-  };
-
-  const userId = from!.id;
-  const username = from!.username;
-  if (!username) {
-    await botMessageService.noUsernameMsg(botMessageConfig);
-    return;
+  if (!userId) {
+    console.error("No User Id!", update);
+    throw new Error("No User Id found");
   }
 
-  const administrators = await bot.getChatAdministrators(id);
-
-  const isAdmin = administrators.find((admin) => {
-    return admin.user.username === username;
-  });
+  const isAdmin = await groupHandlerUtils.isAdmin(userId, id, bot);
 
   if (isAdmin) {
+    console.error("Is an admin", update);
     return;
   }
 

@@ -11,12 +11,14 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
     message_id,
   } = update.message!;
 
-  const username = from!.username;
-  if (!username) {
-    console.error("No username found.", update);
-    return;
+  const userId = from?.id;
+
+  if (!userId) {
+    console.error("No User Id!", update);
+    throw new Error("No User Id found");
   }
-  const isAdmin = await groupHandlerUtils.isAdmin(username, id, bot);
+
+  const isAdmin = await groupHandlerUtils.isAdmin(userId, id, bot);
 
   if (!isAdmin) {
     console.error("User is not an admin");
@@ -33,7 +35,7 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
   };
   const tokens = (text ?? "").split(" ");
 
-  if (tokens.length !== 2) {
+  if (tokens.length !== 3) {
     await botMessageService.invalidArgumentLengthMsg(
       `${text}`,
       botMessageConfig
@@ -41,7 +43,7 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
-  const [_, amountInText] = (text ?? "").split(" ");
+  const [_, amountInText, countInText] = (text ?? "").split(" ");
 
   const amount = Number(amountInText);
   if (isNaN(amount) || amount <= 0) {
@@ -49,6 +51,12 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
       amountInText,
       botMessageConfig
     );
+    return;
+  }
+
+  const count = Number(countInText);
+  if (isNaN(count) || count <= 0) {
+    await botMessageService.invalidAmountTextMsg(countInText, botMessageConfig);
     return;
   }
 
@@ -78,6 +86,7 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
   );
   const activeAirdrop = await activeAirdropService.createActiveAirdrop(
     amount,
+    count,
     botMessage
   );
 

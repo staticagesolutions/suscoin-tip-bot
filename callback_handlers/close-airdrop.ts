@@ -2,6 +2,7 @@ import groupHandlerUtils from "message_handlers/group/group-handler-utils";
 import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
 import {
   activeAirdropService,
+  airdropMemberService,
   botMessageService,
   groupMemberService,
   transactionService,
@@ -23,7 +24,7 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
     }
     const { message, from } = callbackQuery;
 
-    const username = from!.username;
+    const userId = from?.id;
     const chatId = message!.chat.id;
     const sendMessageConfig: SendMessageOptions = {
       parse_mode: "Markdown",
@@ -35,11 +36,11 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       sendMessageConfig,
     };
 
-    if (!username) {
-      console.error("No username found.", update);
-      return;
+    if (!userId) {
+      console.error("No User Id!", update);
+      throw new Error("No User Id found");
     }
-    const isAdmin = await groupHandlerUtils.isAdmin(username, chatId, bot);
+    const isAdmin = await groupHandlerUtils.isAdmin(userId, chatId, bot);
     if (!isAdmin) {
       console.error("User is not an admin");
       return;
@@ -55,22 +56,17 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       return;
     }
 
-    const groupMembers = await groupMemberService.getGroupChatMembers(
-      Number(activeAirdrop.chatId)
-    );
+    const airdropMembers = activeAirdrop.ActiveAirdropMember;
 
-    const airdropMembers = await groupMemberService.getActiveMembers(
-      chatId,
-      messageId
-    );
-
-    const members = groupMembers.filter((member) => {
-      return airdropMembers.find(
-        (dropMember) => member.userId === dropMember.userId
+    if (!airdropMembers) {
+      await bot.sendMessage(
+        userId,
+        `There are no users that participated in the airdrop.`
       );
-    });
+      return;
+    }
 
-    if (members.length === 0) {
+    if (airdropMembers.length === 0) {
       await bot.sendMessage(
         from!.id,
         "There are currently 0 participants in your airdrop",
@@ -79,9 +75,12 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       return;
     }
 
-    const addresses = await groupHandlerUtils.getAddresses(members);
+    const addresses = await groupHandlerUtils.selectWinners(
+      activeAirdrop.count,
+      airdropMembers
+    );
 
-    const wallet = await walletService.getWallet(username);
+    const wallet = await walletService.getWallet(userId);
 
     if (!wallet) {
       await botMessageService.noWalletMsg(botMessageConfig);

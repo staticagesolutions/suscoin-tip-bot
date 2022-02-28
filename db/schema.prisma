@@ -10,18 +10,19 @@ generator client {
 }
 
 model Wallet {
-  username   String @unique
-  address    String @unique
-  privateKey String @unique
+  userId     BigInt  @unique
+  username   String? @unique
+  address    String  @unique
+  privateKey String  @unique
 }
 
 model Chat {
-  chatId   BigInt @unique
-  username String @unique
+  chatId BigInt @unique
+  userId BigInt @unique
 }
 
 model GroupChat {
-  chatId          BigInt            @unique
+  chatId          BigInt            @id
   title           String
   createAt        DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -29,26 +30,29 @@ model GroupChat {
 }
 
 model GroupChatMember {
-  userId              BigInt                @unique
-  username            String
-  groupChat           GroupChat             @relation(fields: [groupChatId], references: [chatId])
+  userId              BigInt
+  username            String?
+  groupChat           GroupChat             @relation(fields: [groupChatId], references: [chatId], onUpdate: NoAction, onDelete: NoAction)
   groupChatId         BigInt
   ActiveAirdropMember ActiveAirdropMember[]
+
+  @@id([userId, groupChatId])
 }
 
 model ActiveAirdropMember {
-  airdropId       Int             @unique @default(autoincrement())
   messageId       BigInt
   groupChatId     BigInt
   userId          BigInt
-  activeAirdrop   ActiveAirdrop   @relation(fields: [messageId], references: [messageId])
-  groupChatMember GroupChatMember @relation(fields: [groupChatId], references: [groupChatId])
+  activeAirdrop   ActiveAirdrop   @relation(fields: [messageId], references: [messageId], onUpdate: NoAction)
+  groupChatMember GroupChatMember @relation(fields: [groupChatId, userId], references: [groupChatId, userId], onUpdate: NoAction)
+
+  @@id([messageId, userId])
 }
 
 model ActiveAirdrop {
   messageId           BigInt                @unique
   chatId              BigInt
   ActiveAirdropMember ActiveAirdropMember[]
-  isActive            Boolean               @default(true)
   amount              Float
+  count               Int
 }

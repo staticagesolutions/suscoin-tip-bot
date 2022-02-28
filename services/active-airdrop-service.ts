@@ -1,29 +1,64 @@
 import { CallbackQuery, Message, Update } from "node-telegram-bot-api";
 
-import db from "@db";
 import { groupMemberService } from "services";
+import activeAirdropRepository from "repositories/active-airdrop.repository";
+import airdropMemberRepository from "repositories/airdrop-member.repository";
 
 export class ActiveAirdropService {
-  async createActiveAirdrop(amount: number, message: Message) {
+  async createActiveAirdrop(amount: number, count: number, message: Message) {
+    let activeAirdrop;
     const {
       chat: { id },
       message_id,
     } = message!;
 
-    return db.activeAirdrop.create({
-      data: {
-        messageId: message_id,
-        chatId: id,
-        amount: amount,
-      },
-    });
+    if (!id) {
+      console.error("No chat Id found");
+      return;
+    }
+
+    if (!message_id) {
+      console.error("No message Id found");
+      return;
+    }
+    try {
+      activeAirdrop = await activeAirdropRepository.createActiveAirdrop(
+        amount,
+        count,
+        BigInt(id),
+        BigInt(message_id)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+
+    return activeAirdrop;
   }
+
   async registerToActiveAirdrop(callbackQuery: CallbackQuery) {
     const { message, from } = callbackQuery!;
 
-    const groupChatId = message?.chat.id!;
-    const messageId = message?.message_id!;
-    const userId = from?.id!;
+    const groupChatId = message?.chat.id;
+    const messageId = message?.message_id;
+    const userId = from?.id;
+
+    if (!groupChatId) {
+      console.error("Group chat Id not found");
+      return;
+    }
+
+    if (!messageId) {
+      console.error("Message Id not found");
+      return;
+    }
+
+    if (!userId) {
+      console.error("User Id not found");
+      return;
+    }
+
+    let registeredAirdropMember;
+
     const member = await groupMemberService.checkMemberRegisteredByCallback(
       callbackQuery
     );
@@ -33,61 +68,66 @@ export class ActiveAirdropService {
     }
 
     const activeAirdropExist = await this.getActiveAirdrop(messageId);
+
     if (!activeAirdropExist) {
-      throw new Error(
+      console.error(
         `Active airdrop with message_id ${messageId} does not exist`
       );
+      return registeredAirdropMember;
     }
 
-    return db.activeAirdropMember.create({
-      data: {
-        groupChatId,
-        messageId,
-        userId,
-      },
-    });
-  }
+    try {
+      registeredAirdropMember =
+        await airdropMemberRepository.createActiveAirdropMember(
+          BigInt(messageId),
+          BigInt(groupChatId),
+          BigInt(userId)
+        );
+    } catch (e) {
+      console.error(e);
+    }
 
-  async isRegisteredToAirdrop(callbackQuery: CallbackQuery) {
-    const { message, from } = callbackQuery!;
-
-    const userId = from.id!;
-    const messageId = message!.message_id;
-    return db.activeAirdropMember.findFirst({
-      where: { messageId, userId },
-    });
+    return registeredAirdropMember;
   }
 
   async getActiveAirdrop(messageId: number) {
-    return db.activeAirdrop.findUnique({
-      where: {
-        messageId,
-      },
-      include: {
-        ActiveAirdropMember: true,
-      },
-    });
+    let activeAirdrop;
+
+    try {
+      activeAirdrop = await activeAirdropRepository.getActiveAirdropById(
+        BigInt(messageId)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+
+    return activeAirdrop;
   }
 
-  async getRegisteredMembers(messageId: number) {
-    return db.activeAirdropMember.findMany({
-      where: {
-        messageId: messageId,
-      },
-    });
+  async getRegisteredMembersByMessageId(messageId: number) {
+    let members;
+    try {
+      members = (
+        await activeAirdropRepository.getActiveAirdropById(BigInt(messageId))
+      )?.ActiveAirdropMember;
+    } catch (e) {
+      console.error(e);
+    }
+    return members;
   }
 
   async removeActiveAirdrop(messageId: number) {
-    await db.activeAirdrop.delete({
-      where: {
-        messageId,
-      },
-    });
+    let isDeleted;
 
-    return db.activeAirdropMember.deleteMany({
-      where: {
-        messageId,
-      },
-    });
+    try {
+      await activeAirdropRepository.deleteActiveAirdropByIdAndLinkedRecords(
+        BigInt(messageId)
+      );
+      isDeleted = true;
+    } catch (e) {
+      console.error(e);
+    }
+
+    return isDeleted;
   }
 }

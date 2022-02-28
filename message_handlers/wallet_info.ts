@@ -8,15 +8,17 @@ export class WalletInfoMessageHandler implements MessageHandler {
   constructor(private walletService: WalletService) {}
   async handleMessage(bot: TelegramBot, update: Update): Promise<void> {
     const {
-      chat: { id, username },
+      chat: { id },
+      from,
     } = update.message!;
 
-    if (!username) {
-      console.error("No username found.", update);
-      return;
+    const userId = from?.id;
+    if (!userId) {
+      console.error("No User Id!", update);
+      throw new Error("No User Id found");
     }
-    const wallet = await this.walletService.getWallet(username);
-    let message = `*${username}* is currently not registered.`;
+
+    const wallet = await this.walletService.getWallet(userId);
     if (!wallet) {
       await bot.sendMessage(id, "No wallet created yet.");
       return;
@@ -24,7 +26,7 @@ export class WalletInfoMessageHandler implements MessageHandler {
     const walletLink = `${process.env.EXPLORER_LINK}/address/${
       wallet!.address
     }`;
-    message = `*SYS*\nAddress: \`${wallet.address}\`\n[Go to explorer](${walletLink})`;
+    const message = `*SYS*\nAddress: \`${wallet.address}\`\n[Go to explorer](${walletLink})`;
     await bot.sendMessage(id, message, {
       parse_mode: "Markdown",
       reply_markup: {
@@ -37,7 +39,7 @@ export class WalletInfoMessageHandler implements MessageHandler {
             {
               text: "Reveal Private Key 🔑",
               callback_data: CallbackData.RevealPrivateKey,
-            }
+            },
           ],
         ],
       },
