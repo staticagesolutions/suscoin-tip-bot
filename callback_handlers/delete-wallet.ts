@@ -1,12 +1,12 @@
 import TelegramBot, { Update } from "node-telegram-bot-api";
 import { CallbackHandler } from "./types";
 
-import web3 from "services/web3";
 import { WalletService } from "services/wallet-service";
 import { CallbackData } from "./enums";
+import { callbackUtils } from "callback_handlers";
 
-export class BalanceCallbackHandler implements CallbackHandler {
-  callbackData = CallbackData.CheckBalance;
+export class DeleteWalletCallbackHandler implements CallbackHandler {
+  callbackData = CallbackData.DeleteWallet;
 
   constructor(private walletService: WalletService) {}
 
@@ -24,13 +24,13 @@ export class BalanceCallbackHandler implements CallbackHandler {
       throw new Error("No User Id found");
     }
 
-    const wallet = await this.walletService.getWallet(userId);
+    const wallet = await this.walletService.deleteWallet(userId);
     if (!wallet) {
-      bot.sendMessage(id, "No wallet created yet.");
+      await bot.sendMessage(id, "Failed to delete wallet.");
       return;
     }
-    const balance = await web3.eth.getBalance(wallet.address);
 
-    await bot.sendMessage(id, `Balance:\t\t${web3.utils.fromWei(balance)}`);
+    await bot.sendMessage(id, "Wallet deleted successfully.");
+    await callbackUtils.removeInlineKeyboardOptions(bot, update);
   }
 }

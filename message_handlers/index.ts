@@ -10,6 +10,7 @@ import { SendMessageHandler } from "./send";
 import { WalletInfoMessageHandler } from "./wallet_info";
 import { HelpMessageHandler } from "./help";
 import { CommandsMessageHandler } from "./commands";
+import { DeleteWalletMessageHandler } from "./delete-wallet";
 
 export const messageHandlers = [
   new StartMessageHandler(chatService),
@@ -17,5 +18,6 @@ export const messageHandlers = [
   new CreateWalletMessageHandler(walletService),
   new SendMessageHandler(walletService, transactionService, botMessageService),
   new HelpMessageHandler(),
-  new CommandsMessageHandler()
+  new CommandsMessageHandler(),
+  new DeleteWalletMessageHandler(walletService, botMessageService)
 ];

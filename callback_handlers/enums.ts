@@ -5,5 +5,6 @@ export enum CallbackData {
   None = "none",
   JoinAirdrop = "join_airdrop",
   CloseAirdrop = "close_airdrop",
-  ConfirmAirdropTransaction = "confirm_airdrop_transaction"
+  ConfirmAirdropTransaction = "confirm_airdrop_transaction",
+  DeleteWallet = "delete_wallet"
 }
