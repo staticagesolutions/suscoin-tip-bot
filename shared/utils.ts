@@ -25,6 +25,10 @@ const privateChatCommands: BotCommand[] = [
     command: "/wallet_info",
     description: "Display your wallet information.",
   },
+  {
+    command: "/delete_wallet",
+    description: "Delete your wallet permanently.",
+  },
 ];
 const groupCommands: BotCommand[] = [
   ...standardCommands,

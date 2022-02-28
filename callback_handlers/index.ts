@@ -11,6 +11,7 @@ import { PrivateKeyCallbackHandler } from "./private-key";
 import { JoinAirdropCallbackHandler } from "./join-airdrop";
 import { CloseAirdropCallbackHandler } from "./close-airdrop";
 import { ActiveAirdropCallbackHandler } from "./confirm-active-airdrop";
+import { DeleteWalletCallbackHandler } from "./delete-wallet";
 
 const confirmTransactionCallBackHandler = new ConfirmTransactionCallbackHandler(
   walletService
@@ -27,6 +28,10 @@ const confirmAirdropCallbackHandler = new ActiveAirdropCallbackHandler(
   walletService,
   activeAirdropService
 );
+
+const deleteWalletCallbackHandler = new DeleteWalletCallbackHandler(
+  walletService
+);
 export const callbackHandlers = [
   confirmAirdropCallbackHandler,
   confirmTransactionCallBackHandler,
@@ -34,5 +39,6 @@ export const callbackHandlers = [
   privateKeyCallbackHandler,
   activeAirdropCallbackHandler,
   closeAirdropCallbackHandler,
+  deleteWalletCallbackHandler,
 ];
 export { callbackUtils };

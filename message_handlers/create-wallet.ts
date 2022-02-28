@@ -49,8 +49,18 @@ export class CreateWalletMessageHandler implements MessageHandler {
 
     const account = web3.eth.accounts.create();
     const { address, privateKey } = account;
-    await this.walletService.saveWallet(userId, account, username);
-    const message = `Address:\t\t${address}\nPrivateKey:\t\t${privateKey}`;
+    let wallet = await this.walletService.saveWallet(userId, account, username);
+
+    if (!wallet) {
+      await bot.sendMessage(
+        chatId,
+        "Failed to create a wallet.",
+        sendMessageConfig
+      );
+      return;
+    }
+
+    const message = `Address:\t\t\`${address}\`\nPrivateKey:\t\t\`${privateKey}\``;
     await bot.sendMessage(chatId, message, sendMessageConfig);
   }
 }
