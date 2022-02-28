@@ -2,6 +2,7 @@ import groupHandlerUtils from "message_handlers/group/group-handler-utils";
 import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
 import {
   activeAirdropService,
+  airdropMemberService,
   botMessageService,
   groupMemberService,
   transactionService,
@@ -55,30 +56,17 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       return;
     }
 
-    const groupMembers = await groupMemberService.getGroupChatMembers(
-      Number(activeAirdrop.chatId)
-    );
+    const airdropMembers = activeAirdrop.ActiveAirdropMember;
 
-    if (!groupMembers) {
+    if (!airdropMembers) {
       await bot.sendMessage(
         userId,
-        `There are no users registered in the group chat: ${message?.chat.title}`
+        `There are no users that participated in the airdrop.`
       );
-      throw new Error("No members found");
+      return;
     }
 
-    const airdropMembers = await groupMemberService.getActiveMembers(
-      chatId,
-      messageId
-    );
-
-    const members = groupMembers.filter((member) => {
-      return airdropMembers.find(
-        (dropMember) => member.userId === dropMember.userId
-      );
-    });
-
-    if (members.length === 0) {
+    if (airdropMembers.length === 0) {
       await bot.sendMessage(
         from!.id,
         "There are currently 0 participants in your airdrop",
@@ -87,7 +75,10 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       return;
     }
 
-    const addresses = await groupHandlerUtils.getAddresses(members);
+    const addresses = await groupHandlerUtils.selectWinners(
+      activeAirdrop.count,
+      airdropMembers
+    );
 
     const wallet = await walletService.getWallet(userId);
 

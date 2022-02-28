@@ -1,4 +1,4 @@
-import { GroupChatMember } from "@prisma/client";
+import { ActiveAirdropMember, GroupChatMember } from "@prisma/client";
 import TelegramBot from "node-telegram-bot-api";
 import { walletService } from "services";
 
@@ -10,9 +10,9 @@ function getRandomInt(min: number, max: number) {
 
 async function selectWinners(
   numberOfWinners: number,
-  members: Array<GroupChatMember>
+  members: Array<GroupChatMember | ActiveAirdropMember>
 ) {
-  const winners: Array<GroupChatMember> = [];
+  const winners: Array<GroupChatMember | ActiveAirdropMember> = [];
 
   while (winners.length !== numberOfWinners) {
     const rand = getRandomInt(0, members.length - 1);
@@ -25,7 +25,9 @@ async function selectWinners(
   return getAddresses(winners);
 }
 
-async function getAddresses(winners: GroupChatMember[]) {
+async function getAddresses(
+  winners: Array<GroupChatMember | ActiveAirdropMember>
+) {
   return await Promise.all(
     winners.map(async (winner) => {
       const wallet = await walletService.getOrCreateWallet(

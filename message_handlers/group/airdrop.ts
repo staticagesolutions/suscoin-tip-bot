@@ -59,7 +59,7 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
-  const [_, numberWinnersInText, amountInText] = (text ?? "").split(" ");
+  const [_, amountInText, numberWinnersInText] = (text ?? "").split(" ");
 
   const amount = Number(amountInText);
   const numberOfWinners = Number(numberWinnersInText);
@@ -78,7 +78,7 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     );
     return;
   }
-
+  console.log(id);
   const members = await groupMemberService.getGroupChatMembers(id);
 
   if (!members) {

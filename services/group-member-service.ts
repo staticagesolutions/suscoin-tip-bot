@@ -1,6 +1,7 @@
 import { CallbackQuery, Update } from "node-telegram-bot-api";
 
 import db from "@db";
+import groupMemberRepository from "repositories/group-member.repository";
 
 export class GroupMemberService {
   async registerMember(update: Update) {
@@ -8,54 +9,68 @@ export class GroupMemberService {
       chat: { id },
       from,
     } = update.message!;
+    let member;
+    const username = from?.username;
 
-    const username = from!.username;
-    const userId = from!.id;
-    return db.groupChatMember.upsert({
-      create: {
-        groupChatId: id,
-        username: username,
-        userId: userId,
-      },
-      update: {
-        groupChatId: id,
-        username: username,
-      },
-      where: {
-        userId_groupChatId: {
-          userId: userId,
-          groupChatId: id,
-        },
-      },
-    });
+    if (!from?.id) {
+      console.error("No User Id found");
+      return;
+    }
+
+    if (!id) {
+      console.error("No Chat Id found");
+      return;
+    }
+
+    const userId = BigInt(from.id);
+    const chatId = BigInt(id);
+
+    try {
+      member = await groupMemberRepository.createGroupMember(
+        userId,
+        chatId,
+        username
+      );
+    } catch (e) {
+      console.error(e);
+    }
+    return member;
   }
 
   async registerMemberByCallback(callbackQuery: CallbackQuery) {
     const { message, from } = callbackQuery!;
-    const username = from!.username!;
-    const userId = from!.id!;
     const groupChatId = message?.chat.id!;
 
     if (from.is_bot) {
+      console.error("Registering a bot is invalid");
       return;
     }
-    return db.groupChatMember.upsert({
-      create: {
-        groupChatId: groupChatId,
-        username: username,
-        userId: userId,
-      },
-      update: {
-        groupChatId: groupChatId,
-        username: username,
-      },
-      where: {
-        userId_groupChatId: {
-          userId: userId,
-          groupChatId: groupChatId,
-        },
-      },
-    });
+    let member;
+    const username = from?.username;
+
+    if (!from?.id) {
+      console.error("No User Id found");
+      return;
+    }
+
+    if (!groupChatId) {
+      console.error("No Chat Id found");
+      return;
+    }
+
+    const userId = BigInt(from.id);
+    const chatId = BigInt(groupChatId);
+
+    try {
+      member = await groupMemberRepository.createGroupMember(
+        userId,
+        chatId,
+        username
+      );
+    } catch (e) {
+      console.error(e);
+    }
+    return member;
   }
 
   async checkMemberRegistered(update: Update) {
@@ -64,61 +79,65 @@ export class GroupMemberService {
       from,
     } = update.message!;
 
-    const memberId = from!.id;
+    let member;
 
-    return db.groupChatMember.findFirst({
-      where: { userId: memberId, groupChatId: id },
-    });
+    if (!from?.id) {
+      console.error("No user Id found");
+      return;
+    }
+
+    if (!id) {
+      console.error("No user Id found");
+      return;
+    }
+
+    const userId = BigInt(from.id);
+    const chatId = BigInt(id);
+
+    try {
+      member = await groupMemberRepository.getMemberByIds(userId, chatId);
+    } catch (e) {
+      console.error(e);
+    }
+
+    return member;
   }
 
   async checkMemberRegisteredByCallback(callbackQuery: CallbackQuery) {
     const { from, message } = callbackQuery!;
 
-    const userId = from!.id;
-    const groupChatId = message!.chat.id;
+    let member;
 
-    return db.groupChatMember.findFirst({
-      where: { userId, groupChatId },
-    });
+    if (!from?.id) {
+      console.error("No user Id found");
+      return;
+    }
+
+    if (!message?.chat?.id) {
+      console.error("No chat Id found");
+      return;
+    }
+
+    const userId = BigInt(from.id);
+    const chatId = BigInt(message.chat.id);
+
+    try {
+      member = await groupMemberRepository.getMemberByIds(userId, chatId);
+    } catch (e) {
+      console.error(e);
+    }
+
+    return member;
   }
 
-  async getGroupChatAndMembers(chatId: number) {
+  async getGroupChatMembers(chatId: number) {
     let result;
     try {
-      result = await db.groupChat.findUnique({
-        where: {
-          chatId: chatId,
-        },
-        include: {
-          GroupChatMember: true,
-        },
-      });
+      result = await groupMemberRepository.getMembersByChatId(BigInt(chatId));
     } catch (e) {
       console.error(e);
     }
 
     return result;
-  }
-
-  async getGroupChatMembers(chatId: number) {
-    return (await this.getGroupChatAndMembers(chatId))?.GroupChatMember;
-  }
-
-  async getActiveMembers(groupChatId: number, messageId: number) {
-    return db.activeAirdropMember.findMany({
-      where: {
-        groupChatId,
-        messageId,
-      },
-    });
-  }
-
-  async createNewChatGroup(migrateChatId: number, title: string) {
-    return db.groupChat.create({
-      data: {
-        chatId: migrateChatId,
-        title: title,
-      },
-    });
   }
 }

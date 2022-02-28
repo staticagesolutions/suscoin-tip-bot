@@ -1,6 +1,7 @@
 import groupHandlerUtils from "message_handlers/group/group-handler-utils";
 import TelegramBot, { Update } from "node-telegram-bot-api";
 import { ActiveAirdropService } from "services/active-airdrop-service";
+import { AirdropMemberService } from "services/airdrop-member-service";
 import { BotMessageService } from "services/bot-message-service";
 import { CallbackData } from "./enums";
 import { CallbackHandler } from "./types";
@@ -8,7 +9,8 @@ import { CallbackHandler } from "./types";
 export class JoinAirdropCallbackHandler implements CallbackHandler {
   constructor(
     private botMessageService: BotMessageService,
-    private activeAirdropService: ActiveAirdropService
+    private activeAirdropService: ActiveAirdropService,
+    private airdropMemberService: AirdropMemberService
   ) {}
   callbackData = CallbackData.JoinAirdrop;
   async handleCallback(bot: TelegramBot, update: Update): Promise<void> {
@@ -29,7 +31,7 @@ export class JoinAirdropCallbackHandler implements CallbackHandler {
       return;
     }
 
-    const isRegistered = await this.activeAirdropService.isRegisteredToAirdrop(
+    const isRegistered = await this.airdropMemberService.isRegisteredToAirdrop(
       callbackQuery
     );
 

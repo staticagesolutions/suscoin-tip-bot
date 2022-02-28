@@ -23,7 +23,7 @@ export class TransactionService {
     return contract;
   }
 
-  airDrop(addresses: string[]){
+  airDrop(addresses: string[]) {
     const contract: TipBotContract = this.getContract()!;
     return contract.methods.airDrop(addresses).encodeABI();
   }
@@ -43,7 +43,6 @@ export class TransactionService {
     data?: any
   ): Promise<TransactionConfig> {
     const contractAddress = this.getContract()!.options.address;
-    console.log(contractAddress);
     let gas = 21000;
     const { maxFeePerGas, maxPriorityFeePerGas } =
       await this.gasEstimatorService.getMaxAndPriorityFeeEstimate();
@@ -94,7 +93,6 @@ export class TransactionService {
   ) {
     const account = web3.eth.accounts.privateKeyToAccount(privateKey);
     const signedTransaction = await account.signTransaction(transactionConfig);
-
     return signedTransaction;
   }
 
