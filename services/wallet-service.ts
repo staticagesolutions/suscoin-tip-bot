@@ -2,12 +2,19 @@ import { Account } from "web3-core";
 import web3 from "./web3";
 
 import db from "@db";
+import walletRepository from "../repositories/wallet.repository";
 
 export class WalletService {
   constructor() {}
 
   public async getWallet(userId: number) {
-    return db.wallet.findUnique({ where: { userId } });
+    let wallet;
+    try {
+      wallet = await walletRepository.getWalletByUserId(BigInt(userId));
+    } catch (e) {
+      console.error(e);
+    }
+    return wallet;
   }
 
   public async checkIfExist(userId: number) {
@@ -17,14 +24,33 @@ export class WalletService {
 
   public async saveWallet(userId: number, account: Account, username?: string) {
     const { address, privateKey } = account;
-    await db.wallet.create({
-      data: {
-        address,
-        privateKey,
-        username,
-        userId,
-      },
-    });
+    let wallet;
+    try {
+      wallet = await db.wallet.create({
+        data: {
+          address,
+          privateKey,
+          username,
+          userId,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    return wallet;
+  }
+
+  public async deleteWallet(userId: number) {
+    let isDeleted = false;
+    try {
+      isDeleted = Boolean(
+        await walletRepository.deleteWalletByUserId(BigInt(userId))
+      );
+    } catch (e) {
+      console.error(e);
+    }
+    return isDeleted;
   }
 
   async getOrCreateWallet(userId: number, username?: string) {
@@ -32,8 +58,7 @@ export class WalletService {
 
     if (!wallet) {
       const recipientAccount = web3.eth.accounts.create();
-      await this.saveWallet(userId, recipientAccount, username);
-      wallet = await this.getWallet(userId);
+      wallet = await this.saveWallet(userId, recipientAccount, username);
     }
 
     return wallet;
