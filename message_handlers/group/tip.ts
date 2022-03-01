@@ -140,7 +140,7 @@ export const tip = async (bot: TelegramBot, update: Update) => {
 
   await bot.sendMessage(from!.id, message, {
     parse_mode: "Markdown",
-    reply_markup: botMessageService.confirmTxReplyMarkup,
+    reply_markup: botMessageService.confirmTipReplyMarkup(id,recipientUser.id, message_id),
   });
 };
 

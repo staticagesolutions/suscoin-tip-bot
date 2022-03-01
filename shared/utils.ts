@@ -19,7 +19,8 @@ const privateChatCommands: BotCommand[] = [
   ...standardCommands,
   {
     command: "/send",
-    description: "<address> <amount> : Sends token to an address with the specified amount.",
+    description:
+      "<address> <amount> : Sends token to an address with the specified amount.",
   },
   {
     command: "/wallet_info",
@@ -50,6 +51,10 @@ const adminGroupCommands: BotCommand[] = [
     command: "/active_airdrop",
     description:
       "<amount> <count> : Sends airdrop to number of active-airdrop participants.",
+  },
+  {
+    command: "/count_members",
+    description: "Display registered members and active-airdrop participants.",
   },
 ];
 

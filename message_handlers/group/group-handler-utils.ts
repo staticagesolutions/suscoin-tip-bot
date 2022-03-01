@@ -14,6 +14,10 @@ async function selectWinners(
 ) {
   const winners: Array<GroupChatMember | ActiveAirdropMember> = [];
 
+  if (members.length < numberOfWinners) {
+    numberOfWinners = members.length;
+  }
+
   while (winners.length !== numberOfWinners) {
     const rand = getRandomInt(0, members.length - 1);
     const chosen = members[rand];

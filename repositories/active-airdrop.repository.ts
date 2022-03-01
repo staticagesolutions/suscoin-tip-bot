@@ -26,6 +26,16 @@ const activeAirdropRepository = {
       },
     });
   },
+  getActiveAirdropsByChatId: async (chatId: bigint) => {
+    return await db.activeAirdrop.findMany({
+      where: {
+        chatId: chatId,
+      },
+      include: {
+        ActiveAirdropMember: true,
+      },
+    });
+  },
   getActiveAirdropByIds: async (messageId: bigint, chatId: bigint) => {
     return await db.activeAirdrop.findFirst({
       where: {

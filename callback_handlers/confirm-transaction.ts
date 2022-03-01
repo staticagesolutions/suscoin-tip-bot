@@ -5,6 +5,12 @@ import web3 from "services/web3";
 import { callbackUtils } from "callback_handlers";
 import { WalletService } from "services/wallet-service";
 
+type TippedDetails = {
+  messageId: number;
+  chatId: number;
+  message: string;
+};
+
 export class ConfirmTransactionCallbackHandler implements CallbackHandler {
   constructor(private walletService: WalletService) {}
   callbackData = CallbackData.ConfirmTransaction;
@@ -12,9 +18,10 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
 
   async handleCallback(bot: TelegramBot, update: Update): Promise<void> {
     await callbackUtils.removeInlineKeyboardOptions(bot, update);
-    const { message, id, from } = update.callback_query!;
-    const sendMessageConfig: SendMessageOptions = {
+    const { message, id, from, data } = update.callback_query!;
+    let sendMessageConfig: SendMessageOptions = {
       parse_mode: "Markdown",
+      disable_web_page_preview: true,
     };
 
     const chatId = message!.chat!.id;
@@ -25,6 +32,22 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
     if (!rawTransaction) {
       bot.sendMessage(id, "Something went wrong.", sendMessageConfig);
       return;
+    }
+
+    let tippedDetails!: TippedDetails;
+    if (data?.split(":").length === 4) {
+      try {
+        const [_, chatId, userId, messageId] = data.split(":");
+        const recipientUser = await bot.getChatMember(chatId, userId);
+        const username = recipientUser.user?.username;
+        tippedDetails = {
+          message: `@${username}'s tip is sent to the network.`,
+          chatId: Number(chatId),
+          messageId: Number(messageId),
+        };
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     const sendEvent = web3.eth.sendSignedTransaction(rawTransaction);
@@ -46,16 +69,23 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
               disable_web_page_preview: true,
             }
           );
+          if (tippedDetails) {
+            await bot.sendMessage(
+              tippedDetails.chatId,
+              `${tippedDetails.message}`,
+              {
+                ...sendMessageConfig,
+                reply_to_message_id: tippedDetails.messageId,
+              }
+            );
+          }
         })
         .once("receipt", async (receipt) => {
           const txHash = receipt.transactionHash;
           await bot.sendMessage(
             chatId,
             `Transaction was successful\n\nTxHash: ${txHash}\n\nOpen in [explorer](${txLink}/${txHash})`,
-            {
-              parse_mode: "Markdown",
-              disable_web_page_preview: true,
-            }
+            sendMessageConfig
           );
           resolve(receipt);
         })

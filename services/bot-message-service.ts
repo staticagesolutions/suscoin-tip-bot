@@ -88,6 +88,27 @@ export class BotMessageService {
     };
   }
 
+  confirmTipReplyMarkup(
+    chatId: number,
+    tipperUserId: number,
+    messageId: number
+  ): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: "yes",
+            callback_data: `${CallbackData.ConfirmTransaction}:${chatId}:${tipperUserId}:${messageId}`,
+          },
+          {
+            text: "cancel",
+            callback_data: CallbackData.None,
+          },
+        ],
+      ],
+    };
+  }
+
   confirmAirdropReplyMarkup(messageId: number): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
