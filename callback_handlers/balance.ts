@@ -23,6 +23,7 @@ export class BalanceCallbackHandler implements CallbackHandler {
       console.error("No User Id!", update);
       throw new Error("No User Id found");
     }
+    const supportedToken = "SYS";
 
     const wallet = await this.walletService.getWallet(userId);
     if (!wallet) {
@@ -31,6 +32,10 @@ export class BalanceCallbackHandler implements CallbackHandler {
     }
     const balance = await web3.eth.getBalance(wallet.address);
 
-    await bot.sendMessage(id, `Balance:\t\t${web3.utils.fromWei(balance)}`);
+    bot.sendMessage(
+      id,
+      `Balance:\t\t*${web3.utils.fromWei(balance)} ${supportedToken}*`,
+      { parse_mode: "Markdown" }
+    );
   }
 }

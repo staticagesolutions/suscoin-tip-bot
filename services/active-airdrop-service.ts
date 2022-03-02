@@ -104,6 +104,20 @@ export class ActiveAirdropService {
     return activeAirdrop;
   }
 
+  async getActiveAirdropsByChatId(chatId: number) {
+    let activeAirdrop;
+
+    try {
+      activeAirdrop = await activeAirdropRepository.getActiveAirdropsByChatId(
+        BigInt(chatId)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+
+    return activeAirdrop;
+  }
+
   async getRegisteredMembersByMessageId(messageId: number) {
     let members;
     try {

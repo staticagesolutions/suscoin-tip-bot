@@ -18,7 +18,7 @@ For full access to your account, press the 🔑 `Private Key button` to see your
 
 *Disclaimer*
 Private keys are managed by Sysbot and securely stored in a database. Sysbot uses the private key to create transactions on your behalf.
-Our Developers have access to these private keys to solve problems with the bot or solve stuck trades. We do not recommended to store large quantities of your digital assets on Sysbot.
+Our Developers have access to these private keys to solve problems with the bot. We do not recommended to store large quantities of your digital assets on Sysbot.
 
 *About*
 Developed by OscorpTech for the Syscoin community.

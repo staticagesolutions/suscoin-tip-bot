@@ -3,6 +3,7 @@ import { groupChatService } from "services";
 import { airdrop } from "./airdrop";
 import { createActiveAirdrop } from "./airdrop-active";
 import { commands } from "./commands";
+import { countMembers } from "./count-members";
 import groupHandlerUtils from "./group-handler-utils";
 import { invitedToGroup } from "./group-invited";
 import { help } from "./help";
@@ -39,6 +40,8 @@ export const handleGroupMessage = async (bot: TelegramBot, update: Update) => {
     await airdrop(bot, update);
   } else if (/\/commands/g.test(command)) {
     await commands(bot, update);
+  } else if(/\/count_members/g.test(command)){
+    await countMembers(bot,update);
   }
 
   return;

@@ -58,20 +58,16 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
 
     const airdropMembers = activeAirdrop.ActiveAirdropMember;
 
-    if (!airdropMembers) {
-      await bot.sendMessage(
-        userId,
-        `There are no users that participated in the airdrop.`
+    if (!airdropMembers || airdropMembers.length === 0) {
+      await bot.editMessageText(
+        "*Active Airdroped Canceled* ❌\nNo participants joined",
+        {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: "Markdown",
+        }
       );
-      return;
-    }
-
-    if (airdropMembers.length === 0) {
-      await bot.sendMessage(
-        from!.id,
-        "There are currently 0 participants in your airdrop",
-        sendMessageConfig
-      );
+      await activeAirdropService.removeActiveAirdrop(messageId);
       return;
     }
 
