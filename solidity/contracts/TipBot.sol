@@ -14,13 +14,13 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
   // Start of events declaration
   event Tip ( address indexed from,  address indexed toAddress, uint256 amount );
   event AirDrop ( address indexed from, address indexed toAddress, uint256 amount);
-  event Withdraw ( uint256 indexed timestamp, uint256 amount, address[] indexed signers);
+  event Withdraw ( uint256 amount, bytes32 indexed reason);
 
   // Global variables used in contract
   uint256 public feeRate = 0.1 ether;
   uint256 public airdropRate = 0.2 ether;
 
-  mapping(address => bool) signatureLookup;
+  mapping( address => mapping(bytes32 => bool)) signatureLookup;
 
   constructor(){
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -70,11 +70,11 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     }
   }
 
-  //TODO: add parameter reason
   function withdraw (
     uint256 amount, 
     bytes memory data,
-    bytes[] calldata signatures
+    bytes[] calldata signatures,
+    bytes32 reason
   ) public nonReentrant {
 
     require( getRoleMemberCount(DEFAULT_ADMIN_ROLE) == signatures.length, "Not enough signatures");
@@ -84,17 +84,15 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     bytes32 hashed = message.toEthSignedMessageHash();
 
     uint8 validSignatures = 0;
-    address[] memory signer_addresses; 
     for (uint8 i = 0; i < signatures.length; i++) {
         bytes calldata signature = signatures[i];
-        address signer = hashed.recover(signature);
+        (address signer) = hashed.recover(signature);
 
-        require( !signatureLookup[signer], "Repeating admin signature not valid");
+        require( !signatureLookup[signer][reason], "Repeating admin signature not valid");
 
-        if (hasRole(DEFAULT_ADMIN_ROLE, signer) && !signatureLookup[signer]) {
+        if (hasRole(DEFAULT_ADMIN_ROLE, signer) && !signatureLookup[signer][reason]) {
             validSignatures += 1;
-            signer_addresses[i] = signer;
-            signatureLookup[signer] = true;
+            signatureLookup[signer][reason] = true;
         }
     }
     require( validSignatures == getRoleMemberCount(DEFAULT_ADMIN_ROLE), "Not all signatures are valid");
@@ -106,16 +104,14 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     uint256 distributedAmount =  amount / getRoleMemberCount(DEFAULT_ADMIN_ROLE);
 
     for(uint8 i = 0; i < getRoleMemberCount(DEFAULT_ADMIN_ROLE); i++){
-      (bool success, ) = signer_addresses[i].call{value: distributedAmount }("");
+      (bool success, ) = getRoleMember(DEFAULT_ADMIN_ROLE, i).call{value: distributedAmount }("");
       require( success, "Failed to withdraw" );
     }
 
     emit Withdraw(
-      block.timestamp, 
       distributedAmount, 
-      signer_addresses
+      reason
     );
-
   }
 
 }

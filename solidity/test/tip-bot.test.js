@@ -59,25 +59,25 @@ contract("TipBot", (accounts)=>{
         //Compute for the distributed value
         const distributedValue = (((1 - parseFloat(airDropRateEth)) * transferValue) / 1) / airdrop_address.length;
 
-        expectEvent( airDropEvent, 'Tip', {
+        expectEvent( airDropEvent, 'AirDrop', {
             from: admin1,
             toAddress: user1,
             amount: web3.utils.toWei(distributedValue.toString())
         });
 
-        expectEvent( airDropEvent, 'Tip', {
+        expectEvent( airDropEvent, 'AirDrop', {
             from: admin1,
             toAddress: user2,
             amount: web3.utils.toWei(distributedValue.toString())
         });
 
-        expectEvent( airDropEvent, 'Tip', {
+        expectEvent( airDropEvent, 'AirDrop', {
             from: admin1,
             toAddress: user3,
             amount: web3.utils.toWei(distributedValue.toString())
         });
 
-        expectEvent( airDropEvent, 'Tip', {
+        expectEvent( airDropEvent, 'AirDrop', {
             from: admin1,
             toAddress: user4,
             amount: web3.utils.toWei(distributedValue.toString())
@@ -104,7 +104,7 @@ contract("TipBot", (accounts)=>{
         ];
 
         await expectRevert( 
-            tipbot.withdraw( withdrawAmount.toString(), encoded, signatures ),
+            tipbot.withdraw( withdrawAmount.toString(), encoded, signatures, web3.utils.asciiToHex('initialTest') ),
             'Repeating admin signature not valid'
         );
 
