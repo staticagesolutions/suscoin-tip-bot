@@ -94,17 +94,36 @@ contract("TipBot", (accounts)=>{
         tipbot.grantRole(adminRole, administrator2.address);
 
         const withdrawAmount = 2;
-        const encoded = web3.eth.abi.encodeParameter('uint256', withdrawAmount.toString());
+        // const encoded = web3.eth.abi.encodeParameter('uint256', withdrawAmount.toString());
+
+        console.log("          init " + web3.utils.rightPad(web3.utils.asciiToHex("init"), 64));
+        console.log("initialTesting " + web3.utils.rightPad(web3.utils.asciiToHex("initialTesting"), 64));
+
+        const encoded = web3.eth.abi.encodeParameter(
+            {
+              ParentStruct: {
+                propertyOne: "uint256", // amount
+                propertyTwo: "bytes32" // reason
+              },
+            },
+            {
+              propertyOne: 2000,
+              propertyTwo: web3.utils.rightPad(web3.utils.asciiToHex("init"), 64)
+            }
+          );
+        
         const hashed = web3.utils.sha3(encoded);
 
         const signatures = [ 
             administrator1.sign(hashed).signature,
-            administrator1.sign(hashed).signature,
+            administrator2.sign(hashed).signature,
             administrator1.sign(hashed).signature
         ];
 
+        console.log(signatures);
+
         await expectRevert( 
-            tipbot.withdraw( withdrawAmount.toString(), encoded, signatures, web3.utils.asciiToHex('initialTest') ),
+            tipbot.withdraw( withdrawAmount.toString(), web3.utils.asciiToHex('initialTest'), encoded, signatures ),
             'Repeating admin signature not valid'
         );
 

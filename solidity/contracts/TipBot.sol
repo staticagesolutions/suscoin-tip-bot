@@ -20,7 +20,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
   uint256 public feeRate = 0.1 ether;
   uint256 public airdropRate = 0.2 ether;
 
-  mapping( address => mapping(bytes32 => bool)) signatureLookup;
+  mapping( bytes => mapping(address => bool)) signatureLookup;
 
   constructor(){
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -72,9 +72,9 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
 
   function withdraw (
     uint256 amount, 
+    bytes32 reason,
     bytes memory data,
-    bytes[] calldata signatures,
-    bytes32 reason
+    bytes[] calldata signatures
   ) public nonReentrant {
 
     require( getRoleMemberCount(DEFAULT_ADMIN_ROLE) == signatures.length, "Not enough signatures");
@@ -84,18 +84,24 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     bytes32 hashed = message.toEthSignedMessageHash();
 
     uint8 validSignatures = 0;
+
     for (uint8 i = 0; i < signatures.length; i++) {
         bytes calldata signature = signatures[i];
         (address signer) = hashed.recover(signature);
 
-        require( !signatureLookup[signer][reason], "Repeating admin signature not valid");
+        require(hasRole(DEFAULT_ADMIN_ROLE, signer), "Signer is not admin");
+        require(!signatureLookup[signature][signer], "Repeating admin signature not valid");
 
-        if (hasRole(DEFAULT_ADMIN_ROLE, signer) && !signatureLookup[signer][reason]) {
-            validSignatures += 1;
-            signatureLookup[signer][reason] = true;
-        }
+        validSignatures += 1;
+        signatureLookup[signature][signer] = true;
     }
+
     require( validSignatures == getRoleMemberCount(DEFAULT_ADMIN_ROLE), "Not all signatures are valid");
+
+    (uint256 decode_amount, bytes32 decode_reason) = abi.decode(data, (uint256, bytes32) );
+
+    require( decode_amount == amount, "Hashed amount not valid");
+    require( decode_reason == reason, "Hashed reason not valid");
     
     //Perform withdraw action
     uint contractAmount = address(this).balance;
