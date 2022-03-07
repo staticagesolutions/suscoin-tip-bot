@@ -22,8 +22,8 @@ export const countMembers = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
-  const registeredMembers = (await groupMemberService.getGroupChatMembers(id))
-    ?.length ?? "0";
+  const registeredMembers =
+    (await groupMemberService.getGroupChatMembers(id))?.length ?? "0";
   const chatAdmins = (await bot.getChatAdministrators(id)).length;
   const groupChatCount = (await bot.getChatMembersCount(id)) - (chatAdmins + 1);
   let activeAirdrops = await activeAirdropService.getActiveAirdropsByChatId(id);
@@ -36,7 +36,7 @@ export const countMembers = async (bot: TelegramBot, update: Update) => {
         const count = am.count;
         const amount = am.amount;
 
-        return `\t\t\t•\t\t${amount} ${token} shared among ${count} winners- ${participants} joined`;
+        return `\t\t\t•\t\t${amount} ${token} shared among ${count} possible winners - ${participants} joined`;
       })
       .join("\n");
   }

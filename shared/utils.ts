@@ -64,6 +64,21 @@ const adminGroupCommands: BotCommand[] = [
     description: "Display registered members and active-airdrop participants.",
   },
 ];
+
+export const stringifyBotCommands = (commands: BotCommand[]) => {
+  return commands
+    .map((cm) => {
+      const parseDescription = cm.description.split(":");
+      let m = `${cm.command} - ${cm.description}`;
+      if (parseDescription.length === 2) {
+        const [commandSyntax, ...rest] = parseDescription;
+        m = `${cm.command} ${commandSyntax} - ${rest}`;
+      }
+      return m;
+    })
+    .join("\n");
+};
+
 export function generateAirdropMessage(
   addresses: string[],
   transactionConfig: TransactionConfig,

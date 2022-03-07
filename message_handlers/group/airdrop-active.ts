@@ -67,7 +67,7 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
 
   const botMessage = await bot.sendMessage(
     id,
-    `*An airdrop has been created.*\n*${amount} ${supportedToken}* will be shared among *${count}* lucky individual/s.\n\n_Join now for a chance to win ${supportedToken}!_`,
+    `*An airdrop has been created.*\n*${amount} ${supportedToken}* will be shared among maximum of *${count}* lucky individual/s.\n\n_Join now for a chance to win ${supportedToken}!_`,
     {
       parse_mode: "Markdown",
       reply_to_message_id: message_id,
