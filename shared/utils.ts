@@ -1,4 +1,7 @@
 import { BotCommand } from "node-telegram-bot-api";
+import { walletService } from "services";
+import web3 from "services/web3";
+import { TransactionConfig } from "web3-core";
 
 const standardCommands: BotCommand[] = [
   {
@@ -61,6 +64,43 @@ const adminGroupCommands: BotCommand[] = [
     description: "Display registered members and active-airdrop participants.",
   },
 ];
+export function generateAirdropMessage(
+  addresses: string[],
+  transactionConfig: TransactionConfig,
+  rawTransaction: string
+) {
+  const amountFromWei = web3.utils.fromWei(
+    transactionConfig.value!.toString(),
+    "ether"
+  );
+
+  return `Confirming your transaction:\n\nWinners: \`${addresses}\`\n\nContract Address: ${transactionConfig.to}\n\nAmount: ${amountFromWei}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
+}
+
+export const getAirdropWinners = async (tokens: string[]) => {
+  const t = tokens.find((t) => t.includes("Winners"));
+  const addresses = t?.split(":")[1].trim().split(",");
+  addresses?.map((addr) => {
+    if (!web3.utils.isAddress(addr)) {
+      throw new Error(`${addr} is not a valid address`);
+    }
+    return;
+  });
+  return (
+    await Promise.all(
+      addresses?.map(async (addr) => {
+        const wallet = await walletService.getWalletByAddress(addr);
+        return `@${wallet?.username} - ${wallet?.address}`;
+      })!
+    )
+  ).join("\n");
+};
+
+export const getContractAddressLink = () => {
+  const explorerLink =
+    process.env.EXPLORER_LINK ?? "https://explorer.syscoin.org";
+  return `${explorerLink}/address/${process.env.CONTRACT_ADDRESS}`;
+};
 
 export const botCommands = {
   standardCommands,

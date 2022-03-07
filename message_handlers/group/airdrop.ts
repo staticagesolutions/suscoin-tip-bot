@@ -6,7 +6,7 @@ import {
   walletService,
 } from "services";
 import { MessageConfigI } from "services/bot-message-service";
-import web3 from "services/web3";
+import { generateAirdropMessage } from "shared/utils";
 
 import { TransactionConfig } from "web3-core";
 import groupHandlerUtils from "./group-handler-utils";
@@ -16,6 +16,7 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     chat: { id, title },
     from,
     text,
+    message_id,
   } = update.message!;
 
   const userId = from?.id;
@@ -44,9 +45,8 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
 
   const tokens = (text ?? "").split(" ");
 
-
   const properSyntax = "Must be: `/airdrop <amount> <count>`";
-    
+
   if (tokens.length !== 3) {
     await bot.sendMessage(
       id,
@@ -116,7 +116,7 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     transactionConfig
   );
 
-  let message = generateBotMessage(
+  let message = generateAirdropMessage(
     addresses,
     transactionConfig,
     signedTransaction.rawTransaction!
@@ -124,21 +124,10 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
 
   await bot.sendMessage(from!.id, message, {
     parse_mode: "Markdown",
-    reply_markup: botMessageService.confirmTxReplyMarkup,
+    reply_markup: botMessageService.confirmTxReplyMarkupWithActionType(
+      "airdrop",
+      id,
+      message_id
+    ),
   });
 };
-
-function generateBotMessage(
-  addresses: string[],
-  transactionConfig: TransactionConfig,
-  rawTransaction: string
-) {
-  const amountFromWei = web3.utils.fromWei(
-    transactionConfig.value!.toString(),
-    "ether"
-  );
-
-  return `Confirming your transaction:\n\nWinners: \`${addresses.toString()}\`\n\nContract Address: ${
-    transactionConfig.to
-  }\n\nAmount: ${amountFromWei}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
-}

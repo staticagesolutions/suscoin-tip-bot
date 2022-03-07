@@ -20,6 +20,12 @@ const walletRepository = {
       },
     });
   },
+  getWalletByAddress: async (address: string) =>
+    db.wallet.findFirst({
+      where: {
+        address,
+      },
+    }),
 };
 
 export default walletRepository;

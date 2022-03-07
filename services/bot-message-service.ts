@@ -88,17 +88,16 @@ export class BotMessageService {
     };
   }
 
-  confirmTipReplyMarkup(
-    chatId: number,
-    tipperUserId: number,
-    messageId: number
+  confirmTxReplyMarkupWithActionType(
+    actionType: string,
+    ...data: any
   ): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
         [
           {
             text: "yes",
-            callback_data: `${CallbackData.ConfirmTransaction}:${chatId}:${tipperUserId}:${messageId}`,
+            callback_data: `${CallbackData.ConfirmTransaction}:${actionType}:${data}`,
           },
           {
             text: "cancel",
