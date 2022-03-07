@@ -68,9 +68,15 @@ tipbot.tip(user1,{from: user2, value: web3.utils.toWei('.0001')});
 
 web3.eth.sendTransaction({to:accounts[0], from:accounts[1], value: web3.utils.toWei('1')})
 
-
-
-
-```
 const jsonAbiNew2 = fs.readFileSync(path.resolve("./build/contracts/TipBot.json"));
 const tipbot3 = new web3.eth.Contract(JSON.parse(jsonAbiNew3).abi, "0x74A614Bd4D07da4f2cd790E8671A0717775B16dB")
+```
+
+```javascript
+    const mnemonic = fs.readFileSync(".secret").toString().trim();
+    console.log(mnemonic);
+    let mnemonicWallet = ethers.Wallet.fromMnemonic(mnemonic);
+    const privateKey = mnemonicWallet.privateKey;
+    console.log("wallets: " + web3.eth.accounts.wallet);
+```
+

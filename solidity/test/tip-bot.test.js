@@ -3,9 +3,12 @@ const truffleAssertions = require("truffle-assertions");
 const TipBot = artifacts.require("TipBot");
 const { expectRevert, expectEvent } = require('@openzeppelin/test-helpers');
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
+const fs = require('fs');
+const ethers = require('ethers');
 
 contract("TipBot", (accounts)=>{
     const [ admin1, admin2, user1, user2, user3, user4 ] = accounts;
+
     before( async ()=>{
         tipbot = await TipBot.deployed();
         tipbot.grantRole(web3.utils.fromAscii("DEFAULT_ADMIN_ROLE"), admin1);
@@ -85,50 +88,6 @@ contract("TipBot", (accounts)=>{
 
     });
 
-    it("Should not allow to withdraw when there are repeating signatures", async() => {
-
-        const adminRole = await tipbot.DEFAULT_ADMIN_ROLE();
-        const administrator1 = web3.eth.accounts.create();
-        const administrator2 = web3.eth.accounts.create();
-        tipbot.grantRole(adminRole, administrator1.address);
-        tipbot.grantRole(adminRole, administrator2.address);
-
-        const withdrawAmount = 2;
-        // const encoded = web3.eth.abi.encodeParameter('uint256', withdrawAmount.toString());
-
-        console.log("          init " + web3.utils.rightPad(web3.utils.asciiToHex("init"), 64));
-        console.log("initialTesting " + web3.utils.rightPad(web3.utils.asciiToHex("initialTesting"), 64));
-
-        const encoded = web3.eth.abi.encodeParameter(
-            {
-              ParentStruct: {
-                propertyOne: "uint256", // amount
-                propertyTwo: "bytes32" // reason
-              },
-            },
-            {
-              propertyOne: 2000,
-              propertyTwo: web3.utils.rightPad(web3.utils.asciiToHex("init"), 64)
-            }
-          );
-        
-        const hashed = web3.utils.sha3(encoded);
-
-        const signatures = [ 
-            administrator1.sign(hashed).signature,
-            administrator2.sign(hashed).signature,
-            administrator1.sign(hashed).signature
-        ];
-
-        console.log(signatures);
-
-        await expectRevert( 
-            tipbot.withdraw( withdrawAmount.toString(), web3.utils.asciiToHex('initialTest'), encoded, signatures ),
-            'Repeating admin signature not valid'
-        );
-
-    });
-
     it("Should be able change airDrop rate not greater than 1 eth", async() => {
         await tipbot.setAirdropRate( web3.utils.toWei('0.4'));
         const feeRate = await tipbot.airdropRate();
@@ -142,16 +101,6 @@ contract("TipBot", (accounts)=>{
             "sender doesn't have enough funds to send tx"
         );
     });
-
-    //TODO: cannot test if invalid address
-    // it("Should not be able to send to an invalid address", async() => {
-    //     console.log(admin2);
-    //     await expectRevert(
-    //         tipbot.tip("1x4d09dB42d8262731311269DB01bca4eDDa099D83",{from: user1, value: web3.utils.toWei('0.1')}),
-    //         'Failed to send Token'
-    //     );
-    // });
-
 }); 
 
 describe('TipBot Failing Test', ()=>{
