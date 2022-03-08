@@ -49,15 +49,21 @@ export class DeleteWalletMessageHandler implements MessageHandler {
 
     await bot.sendMessage(
       id,
-      `*Confirm Wallet Deletion*\n\nBalance:\t\t${web3.utils.fromWei(balance)}`,
+      `When you delete your wallet it will only be deleted from the Sysbot wallet database. The wallet address will still exist.\n\nPlease make sure you have your private key for any future access you may need. *You will no longer be able to access this info from the Syscoin bot*.\n\nDo you want to delete your wallet?\n\nBalance:\t\t${web3.utils.fromWei(
+        balance
+      )}`,
       {
         parse_mode: "Markdown",
         reply_markup: {
           inline_keyboard: [
             [
               {
-                text: "Delete permanently ❌",
+                text: "Yes, Delete 🗑️",
                 callback_data: CallbackData.DeleteWallet,
+              },
+              {
+                text: "No",
+                callback_data: CallbackData.None,
               },
             ],
           ],

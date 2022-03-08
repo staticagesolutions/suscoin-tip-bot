@@ -1,7 +1,6 @@
 import TelegramBot, { Update } from "node-telegram-bot-api";
 import { CallbackHandler } from "./types";
 
-import web3 from "services/web3";
 import { WalletService } from "services/wallet-service";
 import { CallbackData } from "./enums";
 
@@ -29,6 +28,12 @@ export class PrivateKeyCallbackHandler implements CallbackHandler {
       return;
     }
 
-    bot.sendMessage(id, `Private key:\t\t${wallet.privateKey}`);
+    bot.sendMessage(
+      id,
+      `Please keep your private key safe and *DO NOT share it with ANYONE*\n\nPrivate key:\t\t\`${wallet.privateKey}\``,
+      {
+        parse_mode: "Markdown",
+      }
+    );
   }
 }
