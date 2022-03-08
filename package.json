@@ -15,6 +15,7 @@
     "test": "jest test --runInBand"
   },
   "dependencies": {
+    "@metamask/detect-provider": "^1.2.0",
     "@prisma/client": "^3.8.1",
     "@types/node-telegram-bot-api": "^0.53.6",
     "@types/web3": "^1.2.2",
