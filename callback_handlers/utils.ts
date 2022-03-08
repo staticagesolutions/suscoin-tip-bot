@@ -1,6 +1,7 @@
 import { ActiveAirdrop } from "@prisma/client";
 import TelegramBot, { Update } from "node-telegram-bot-api";
 import { activeAirdropService } from "services";
+import { getAirdropWinners, getContractAddressLink } from "shared/utils";
 
 export async function removeInlineKeyboardOptions(
   bot: TelegramBot,
@@ -22,22 +23,32 @@ export async function removeInlineKeyboardOptions(
 
 export async function cleanUpActiveAirdrop(
   activeAirdrop: ActiveAirdrop,
-  bot: TelegramBot
+  bot: TelegramBot,
+  tokens: string[]
 ): Promise<void> {
   const { chatId, messageId } = activeAirdrop;
+
+  const nChatId = Number(chatId);
+  const nMessageId = Number(messageId);
   await activeAirdropService.removeActiveAirdrop(Number(messageId));
   if (chatId && messageId) {
+    const winnerAddresses = await getAirdropWinners(tokens);
+    const link = getContractAddressLink();
+    await bot.sendMessage(nChatId, `Winners:\n${winnerAddresses}\n\n${link}`, {
+      reply_to_message_id: nMessageId,
+      disable_web_page_preview: true,
+    });
     await bot.editMessageText("Airdrop has finished. 🥳🎉", {
-      chat_id: Number(chatId),
-      message_id: Number(messageId),
+      chat_id: nChatId,
+      message_id: nMessageId,
     });
     await bot.editMessageReplyMarkup(
       {
         inline_keyboard: [],
       },
       {
-        chat_id: Number(chatId),
-        message_id: Number(messageId),
+        chat_id: nChatId,
+        message_id: nMessageId,
       }
     );
   }

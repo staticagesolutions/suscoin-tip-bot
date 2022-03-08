@@ -2,15 +2,12 @@ import groupHandlerUtils from "message_handlers/group/group-handler-utils";
 import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
 import {
   activeAirdropService,
-  airdropMemberService,
   botMessageService,
-  groupMemberService,
   transactionService,
   walletService,
 } from "services";
 import { MessageConfigI } from "services/bot-message-service";
-import web3 from "services/web3";
-import { TransactionConfig } from "web3-core";
+import { generateAirdropMessage } from "shared/utils";
 import { CallbackData } from "./enums";
 import { CallbackHandler } from "./types";
 
@@ -110,7 +107,7 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       transactionConfig
     );
 
-    let botMessage = generateBotMessage(
+    let botMessage = generateAirdropMessage(
       addresses,
       transactionConfig,
       signedTransaction.rawTransaction!
@@ -121,19 +118,4 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       reply_markup: botMessageService.confirmAirdropReplyMarkup(messageId),
     });
   }
-}
-
-function generateBotMessage(
-  addresses: string[],
-  transactionConfig: TransactionConfig,
-  rawTransaction: string
-) {
-  const amountFromWei = web3.utils.fromWei(
-    transactionConfig.value!.toString(),
-    "ether"
-  );
-
-  return `Confirming your transaction:\n\nWinners: \`${addresses.toString()}\`\n\nContract Address: ${
-    transactionConfig.to
-  }\n\nAmount: ${amountFromWei}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
 }

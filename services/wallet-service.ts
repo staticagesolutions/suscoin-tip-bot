@@ -17,6 +17,20 @@ export class WalletService {
     return wallet;
   }
 
+  public async getWalletByAddress(address: string) {
+    let wallet;
+    try {
+      if (web3.utils.isAddress(address)) {
+        wallet = await walletRepository.getWalletByAddress(address);
+      } else {
+        console.error("Invalid wallet address");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return wallet;
+  }
+
   public async checkIfExist(userId: number) {
     const wallet = await this.getWallet(userId);
     return Boolean(wallet);

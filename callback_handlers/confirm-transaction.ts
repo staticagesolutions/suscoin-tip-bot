@@ -4,8 +4,9 @@ import { CallbackHandler } from "./types";
 import web3 from "services/web3";
 import { callbackUtils } from "callback_handlers";
 import { WalletService } from "services/wallet-service";
+import { getAirdropWinners, getContractAddressLink } from "shared/utils";
 
-type TippedDetails = {
+type AdditionalMessage = {
   messageId: number;
   chatId: number;
   message: string;
@@ -26,28 +27,22 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
 
     const chatId = message!.chat!.id;
 
-    const tokens = (message!.text ?? "").split(" ");
-    const rawTransaction = tokens.pop();
-
+    const tokens = (message!.text ?? "").split("\n");
+    const rawTransaction = tokens.pop()?.split(":").pop()?.trim();
     if (!rawTransaction) {
       bot.sendMessage(id, "Something went wrong.", sendMessageConfig);
       return;
     }
 
-    let tippedDetails!: TippedDetails;
-    if (data?.split(":").length === 4) {
-      try {
-        const [_, chatId, userId, messageId] = data.split(":");
-        const recipientUser = await bot.getChatMember(chatId, userId);
-        const username = recipientUser.user?.username;
-        tippedDetails = {
-          message: `@${username}'s tip is sent to the network.`,
-          chatId: Number(chatId),
-          messageId: Number(messageId),
-        };
-      } catch (e) {
-        console.error(e);
-      }
+    let additionalMessage!: AdditionalMessage;
+
+    const parsedData = data?.split(":");
+    if (parsedData && parsedData?.length > 2) {
+      additionalMessage = await this.getAdditionalMessage(
+        parsedData,
+        tokens,
+        bot
+      );
     }
 
     const sendEvent = web3.eth.sendSignedTransaction(rawTransaction);
@@ -69,13 +64,13 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
               disable_web_page_preview: true,
             }
           );
-          if (tippedDetails) {
+          if (additionalMessage) {
             await bot.sendMessage(
-              tippedDetails.chatId,
-              `${tippedDetails.message}`,
+              additionalMessage.chatId,
+              `${additionalMessage.message}`,
               {
                 ...sendMessageConfig,
-                reply_to_message_id: tippedDetails.messageId,
+                reply_to_message_id: additionalMessage.messageId,
               }
             );
           }
@@ -95,5 +90,42 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
           reject(err);
         });
     });
+  }
+
+  async getAdditionalMessage(
+    parsedData: string[],
+    tokens: string[],
+    bot: TelegramBot
+  ) {
+    let additionalMessage!: AdditionalMessage;
+
+    try {
+      const [_, type, ...propsString] = parsedData;
+      const props = propsString.join(",").split(",");
+      if (type === "tip") {
+        const [chatId, userId, messageId] = props;
+        const recipientUser = await bot.getChatMember(chatId, userId);
+        const username = recipientUser.user?.username;
+        additionalMessage = {
+          message: `@${username}'s tip is sent to the network.`,
+          chatId: Number(chatId),
+          messageId: Number(messageId),
+        };
+      }
+      if (parsedData!.includes("airdrop")) {
+        const [chatId, messageId] = props;
+        const winnerAddresses = await getAirdropWinners(tokens);
+        const link = getContractAddressLink();
+        additionalMessage = {
+          message: `Winners:\n${winnerAddresses}\n\n${link}`,
+          chatId: Number(chatId),
+          messageId: Number(messageId),
+        };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    return additionalMessage;
   }
 }

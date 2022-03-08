@@ -24,8 +24,8 @@ export class ActiveAirdropCallbackHandler implements CallbackHandler {
 
     const chatId = message!.chat!.id;
 
-    const tokens = (message!.text ?? "").split(" ");
-    const rawTransaction = tokens.pop();
+    const tokens = (message!.text ?? "").split("\n");
+    const rawTransaction = tokens.pop()?.split(":").pop()?.trim();
     const messageId = data!.split(":").pop();
 
     if (!rawTransaction || !messageId) {
@@ -53,7 +53,7 @@ export class ActiveAirdropCallbackHandler implements CallbackHandler {
           );
           const activeAirdrop =
             await this.activeAirdropService.getActiveAirdrop(Number(messageId));
-          await cleanUpActiveAirdrop(activeAirdrop!, bot);
+          await cleanUpActiveAirdrop(activeAirdrop!, bot, tokens);
         })
         .once("receipt", async (receipt) => {
           const txHash = receipt.transactionHash;
