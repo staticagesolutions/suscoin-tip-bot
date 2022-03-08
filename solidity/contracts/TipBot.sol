@@ -13,13 +13,14 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
 
   // Start of events declaration
   event Tip ( address indexed from,  address indexed toAddress, uint256 amount );
-  event AirDrop ( address[] indexed accounts);
+  event AirDrop ( address indexed from, address indexed toAddress, uint256 amount);
+  event Withdraw ( uint256 amount, bytes32 indexed reason);
 
   // Global variables used in contract
   uint256 public feeRate = 0.1 ether;
   uint256 public airdropRate = 0.2 ether;
 
-  mapping(address => bool) signatureLookup;
+  mapping( bytes => mapping(address => bool)) signatureLookup;
 
   constructor(){
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -53,14 +54,15 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     address payable[] memory accountAddress
   ) public payable nonReentrant {
 
+    require(accountAddress.length > 0, "Addresses cannot be empty");
     uint256 distributedAmount = ( ((1 ether - airdropRate) * msg.value ) / 1 ether ) / accountAddress.length;
 
     for(uint8 i = 0; i < accountAddress.length; i++){
 
-      (bool success, ) = accountAddress[i].call{value: distributedAmount }("");
-      require(success, "Failed to send Token");
+    (bool success, ) = accountAddress[i].call{value: distributedAmount }("");
+    require(success, "Failed to send Token");
 
-      emit Tip( 
+      emit AirDrop(
         msg.sender,
         accountAddress[i],
         distributedAmount
@@ -70,6 +72,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
 
   function withdraw (
     uint256 amount, 
+    bytes32 reason,
     bytes memory data,
     bytes[] calldata signatures
   ) public nonReentrant {
@@ -81,25 +84,40 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     bytes32 hashed = message.toEthSignedMessageHash();
 
     uint8 validSignatures = 0;
+
     for (uint8 i = 0; i < signatures.length; i++) {
         bytes calldata signature = signatures[i];
-        address signer = hashed.recover(signature);
+        (address signer) = hashed.recover(signature);
 
-        require( !signatureLookup[signer], "Repeating admin signature not valid");
+        require(hasRole(DEFAULT_ADMIN_ROLE, signer), "Signer is not admin");
+        require(!signatureLookup[signature][signer], "Repeating admin signature not valid");
 
-        if (hasRole(DEFAULT_ADMIN_ROLE, signer) && !signatureLookup[signer]) {
-            validSignatures += 1;
-            signatureLookup[signer] = true;
-        }
+        validSignatures += 1;
+        signatureLookup[signature][signer] = true;
     }
+
     require( validSignatures == getRoleMemberCount(DEFAULT_ADMIN_ROLE), "Not all signatures are valid");
+
+    (uint256 decode_amount, bytes32 decode_reason) = abi.decode(data, (uint256, bytes32) );
+
+    require( decode_amount == amount, "Hashed amount not valid");
+    require( decode_reason == reason, "Hashed reason not valid");
     
     //Perform withdraw action
     uint contractAmount = address(this).balance;
     require( amount <= contractAmount, "Not enough balance to withdraw" );
 
-    (bool success, ) =  msg.sender.call{ value: amount }("");
-    require( success, "Failed to withdraw" );
+    uint256 distributedAmount =  amount / getRoleMemberCount(DEFAULT_ADMIN_ROLE);
+
+    for(uint8 i = 0; i < getRoleMemberCount(DEFAULT_ADMIN_ROLE); i++){
+      (bool success, ) = getRoleMember(DEFAULT_ADMIN_ROLE, i).call{value: distributedAmount }("");
+      require( success, "Failed to withdraw" );
+    }
+
+    emit Withdraw(
+      distributedAmount, 
+      reason
+    );
   }
 
 }
