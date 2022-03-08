@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { GasEstimatorService } from "services/gas-estimator-service";
-import { TransactionService } from "services/transaction-service";
 
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
@@ -30,9 +28,6 @@ const contract = new web3.eth.Contract(
   contractAddress
 );
 
-const transactionService = new TransactionService(new GasEstimatorService());
-transactionService.contractAddress = contractAddress;
-
 const Admin: React.FC = () => {
   const [isMetamaskEnabled, setIsMetamaskEnabled] = useState(false);
   const [account, setAccount] = useState<string | null>(null);
@@ -40,6 +35,7 @@ const Admin: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [feeRate, setFeeRate] = useState("0");
   const [airdropFeeRate, setAirdropFeeRate] = useState("0");
+  const [adminCount, setAdminCount] = useState(0);
 
   useEffect(() => {
     if (typeof window.ethereum !== "undefined" && window.ethereum.isMetaMask) {
@@ -67,6 +63,7 @@ const Admin: React.FC = () => {
     const adminRole = await contract.methods.DEFAULT_ADMIN_ROLE().call();
     contract.methods.hasRole(adminRole, account).call().then(setIsAdmin);
     fetchFeeRate();
+    contract.methods.getRoleMemberCount(adminRole).call().then(setAdminCount);
   }, []);
 
   const updateFeeRate = async () => {
@@ -124,6 +121,7 @@ const Admin: React.FC = () => {
         <button onClick={updateFeeRate}>Update</button>
       </div>
       <p>Airdrop Fee Rate: {airdropFeeRate}</p>
+      <p>Admins: {adminCount}</p>
     </div>
   );
 };
