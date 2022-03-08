@@ -38,7 +38,16 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       throw new Error("No User Id found");
     }
     const isAdmin = await groupHandlerUtils.isAdmin(userId, chatId, bot);
+
     if (!isAdmin) {
+      await botMessageService.actionNotAllowed(
+        "Only admins can close active-airdops",
+        {
+          bot,
+          sendMessageConfig,
+          chatId: userId,
+        }
+      );
       console.error("User is not an admin");
       return;
     }
