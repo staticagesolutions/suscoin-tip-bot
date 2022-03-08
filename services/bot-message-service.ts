@@ -124,4 +124,12 @@ export class BotMessageService {
       ],
     };
   }
+
+  async actionNotAllowed(msg: string, config: MessageConfigI) {
+    return await config.bot.sendMessage(
+      config.chatId,
+      `*Action not allowed*\n${msg}.`,
+      config.sendMessageConfig
+    );
+  }
 }
