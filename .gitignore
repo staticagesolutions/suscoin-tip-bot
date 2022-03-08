@@ -38,6 +38,7 @@ yarn-error.log*
 
 #smart contract
 solidity/.secret
+solidity/.privatekey
 solidity/build/
 solidity/flatten/
 solidity/node_modules
