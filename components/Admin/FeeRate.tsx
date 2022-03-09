@@ -1,3 +1,9 @@
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useAdminContract } from "contexts/admin-contract";
 import { useEffect, useState } from "react";
 
@@ -23,20 +29,34 @@ const FeeRate: React.FC = () => {
   };
 
   return (
-    <div>
-      <label htmlFor="feeRate">Fee Rate:</label>
-      <input
-        type="text"
-        value={feeRate}
-        onChange={(e) => setFeeRate(e.target.value)}
-        disabled={isFetching}
-        name="feeRate"
-      />
-      <button disabled={isFetching} onClick={handleUpdate}>
-        Update
-      </button>
-      {transactionHash && <p>Transaction Hash: {transactionHash}</p>}
-    </div>
+    <Box  sx={{ mb: 2 }}>
+      <Box display="flex">
+        <TextField
+          value={feeRate}
+          onChange={(e) => setFeeRate(e.target.value)}
+          disabled={isFetching}
+          name="feeRate"
+          label="Fee Rate:"
+          type="number"
+          sx={{ flex: 1 }}
+          inputProps={{
+            inputMode: "numeric",
+            pattern: "[0-9].[0-9][0-9]*",
+            max: 100,
+            min: 0.1,
+            step: 0.1,
+          }}
+        />
+        <Button disabled={isFetching} onClick={handleUpdate}>
+          Update
+        </Button>
+      </Box>
+      {transactionHash && (
+        <Typography variant="caption">
+          Transaction Hash: {transactionHash}
+        </Typography>
+      )}
+    </Box>
   );
 };
 

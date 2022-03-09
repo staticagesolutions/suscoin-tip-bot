@@ -1,3 +1,4 @@
+import { Box, Button, TextField } from "@mui/material";
 import { useAdminContract } from "contexts/admin-contract";
 import { useEffect, useState } from "react";
 
@@ -23,20 +24,28 @@ const AirdropRate: React.FC = () => {
   };
 
   return (
-    <div>
-      <label htmlFor="airdropRate">Airdrop Rate:</label>
-      <input
-        type="text"
+    <Box display="flex" sx={{ mb: 2 }}>
+      <TextField
+        type="number"
         value={airdropRate}
         onChange={(e) => setAirdropRate(e.target.value)}
         disabled={isFetching}
         name="airdropRate"
+        label="Airdrop Rate:"
+        sx={{ flex: 1 }}
+        inputProps={{
+          inputMode: "numeric",
+          pattern: "[0-9].[0-9][0-9]*",
+          max: 100,
+          min: 0.1,
+          step: 0.1,
+        }}
       />
-      <button disabled={isFetching} onClick={handleUpdate}>
+      <Button disabled={isFetching} onClick={handleUpdate}>
         Update
-      </button>
+      </Button>
       {transactionHash && <p>Update Airdrop: {transactionHash}</p>}
-    </div>
+    </Box>
   );
 };
 

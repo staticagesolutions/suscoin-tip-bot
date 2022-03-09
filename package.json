@@ -15,7 +15,12 @@
     "test": "jest test --runInBand"
   },
   "dependencies": {
+    "@emotion/react": "^11.8.1",
+    "@emotion/styled": "^11.8.1",
+    "@hookform/resolvers": "^2.8.8",
     "@metamask/detect-provider": "^1.2.0",
+    "@mui/icons-material": "^5.5.0",
+    "@mui/material": "^5.5.0",
     "@prisma/client": "^3.8.1",
     "@types/node-telegram-bot-api": "^0.53.6",
     "@types/web3": "^1.2.2",
@@ -24,9 +29,11 @@
     "node-telegram-bot-api": "^0.56.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-hook-form": "^7.27.1",
     "react-query": "^3.34.16",
     "web3": "^1.7.0",
-    "web3-eth-accounts": "^1.7.0"
+    "web3-eth-accounts": "^1.7.0",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",

@@ -1,15 +1,20 @@
-import { useCallback, useEffect, useState } from "react";
-
-import Web3 from "web3";
-import { AbiItem } from "web3-utils";
-
-import TipBot from "@contracts/TipBot.json";
 import MetamaskProvider, { useMetamask } from "contexts/metamask";
 import AdminContractProvider, {
   useAdminContract,
 } from "contexts/admin-contract";
 import AdminPanel from "components/Admin/Panel";
 import QueryClientProvider from "contexts/query-client-provider";
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Container,
+  Typography,
+} from "@mui/material";
+import { GetStaticPropsContext } from "next";
+import AdminList from "components/Admin/List";
+import AdminBalance from "components/Admin/Balance";
 
 const Admin: React.FC = () => {
   const {
@@ -27,22 +32,56 @@ const Admin: React.FC = () => {
     requestAccounts();
   };
 
+  if (!account) {
+    return (
+      <Card>
+        <CardContent>
+          <Typography variant="h6">
+            Welcome to Syscoin TipBot Admin Page
+          </Typography>
+          <Typography variant="body1">
+            This UI interacts with Metamask Wallet to perform admin operation
+            and is only accessible by addresses gived by ADMIN Roles.
+          </Typography>
+        </CardContent>
+        <CardActions>
+          <Button onClick={handleConnext} variant="text" color="primary">
+            Connect
+          </Button>
+        </CardActions>
+      </Card>
+    );
+  }
+
   return (
-    <div>
-      {!account && <button onClick={handleConnext}>Connect</button>}
-      <p>Logged as: {account}</p>
-      {isAdmin && <AdminPanel />}
-      {!isAdmin && isAdmin && <span>Not an admin</span>}
-    </div>
+    <Card>
+      <CardContent>
+        <p>Logged as: {account}</p>
+        <AdminBalance />
+        <AdminPanel />
+        <AdminList />
+      </CardContent>
+    </Card>
   );
 };
 
-const AdminWrapper = () => {
+interface AdminWrapperProps {
+  contractAddress: string;
+  explorerLink: string;
+  rpcProvider: string;
+}
+
+const AdminWrapper = (props: AdminWrapperProps) => {
   return (
     <QueryClientProvider>
       <MetamaskProvider>
-        <AdminContractProvider>
-          <Admin />
+        <AdminContractProvider
+          contractAddress={props.contractAddress}
+          rpcProvider={props.rpcProvider}
+        >
+          <Container maxWidth="md" sx={{ py: 10 }}>
+            <Admin />
+          </Container>
         </AdminContractProvider>
       </MetamaskProvider>
     </QueryClientProvider>
@@ -50,3 +89,13 @@ const AdminWrapper = () => {
 };
 
 export default AdminWrapper;
+
+export async function getStaticProps(context: GetStaticPropsContext) {
+  return {
+    props: {
+      contractAddress: process.env.CONTRACT_ADDRESS!,
+      explorerLink: process.env.EXPLORER_LINK!,
+      rpcProvider: process.env.RPC_PROVIDER,
+    },
+  };
+}
