@@ -17,7 +17,8 @@
     "baseUrl": ".",
     "paths": {
       "@db/*": ["db/*"],
-      "@db": ["db/index"]
+      "@db": ["db/index"],
+      "@contracts/*": ["solidity/build/contracts/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "jest.config.js"],
