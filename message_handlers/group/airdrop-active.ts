@@ -1,6 +1,11 @@
 import { CallbackData } from "callback_handlers/enums";
 import TelegramBot, { SendMessageOptions, Update } from "node-telegram-bot-api";
-import { activeAirdropService, botMessageService } from "services";
+import {
+  activeAirdropService,
+  botMessageService,
+  transactionService,
+  walletService,
+} from "services";
 import { MessageConfigI } from "services/bot-message-service";
 import groupHandlerUtils from "./group-handler-utils";
 export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
@@ -54,6 +59,21 @@ export const createActiveAirdrop = async (bot: TelegramBot, update: Update) => {
       amountInText,
       botMessageConfig
     );
+    return;
+  }
+
+  const wallet = await walletService.getWallet(userId);
+
+  if (!wallet) {
+    await botMessageService.noWalletMsg(botMessageConfig);
+    return;
+  }
+
+  const isBalanceSufficient =
+    await transactionService.validateSufficientBalance(wallet.address, amount);
+
+  if (!isBalanceSufficient) {
+    await botMessageService.insufficientBalance(botMessageConfig);
     return;
   }
 
