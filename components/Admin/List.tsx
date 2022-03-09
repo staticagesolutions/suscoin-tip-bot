@@ -30,7 +30,12 @@ interface Submission {
 
 const NewAdminForm: React.FC = () => {
   const { addAdmin } = useAdminContract();
-  const { handleSubmit, control, formState: { isValid } } = useForm({
+  const {
+    handleSubmit,
+    control,
+    formState: { isValid },
+  } = useForm({
+    mode: "all",
     resolver: yupResolver(
       yup.object().shape({
         address: yup
