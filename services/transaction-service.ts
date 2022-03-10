@@ -65,7 +65,7 @@ export class TransactionService {
 
     return {
       ...transactionConfig,
-      gas,
+      // gas,
     };
   }
 
