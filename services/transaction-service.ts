@@ -45,7 +45,7 @@ export class TransactionService {
     from?: string
   ): Promise<TransactionConfig> {
     const contractAddress = this.getContract()!.options.address;
-    let gas = 21000;
+    let gas = 30_000;
     const { maxFeePerGas, maxPriorityFeePerGas } =
       await this.gasEstimatorService.getMaxAndPriorityFeeEstimate();
 
