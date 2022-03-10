@@ -108,7 +108,7 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
   let data = transactionService.airDrop(addresses);
 
   const transactionConfig =
-    await transactionService.getTransactionConfigForContract(amount, data);
+    await transactionService.getTransactionConfigForContract(amount, data, wallet.address);
 
   const signedTransaction = await transactionService.signTransaction(
     wallet.privateKey,

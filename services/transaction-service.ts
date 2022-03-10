@@ -41,7 +41,8 @@ export class TransactionService {
 
   async getTransactionConfigForContract(
     amount: number,
-    data?: any
+    data?: any,
+    from?: string
   ): Promise<TransactionConfig> {
     const contractAddress = this.getContract()!.options.address;
     let gas = 21000;
@@ -52,6 +53,7 @@ export class TransactionService {
       throw new Error("Unable to estimate gas fees.");
     }
     let transactionConfig: TransactionConfig = {
+      from,
       to: contractAddress,
       value: web3.utils.toWei(amount.toString(), "ether"),
       maxFeePerGas: Number(maxFeePerGas),
@@ -65,7 +67,7 @@ export class TransactionService {
 
     return {
       ...transactionConfig,
-      // gas,
+      gas,
     };
   }
 

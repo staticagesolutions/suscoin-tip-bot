@@ -109,7 +109,7 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
     let data = transactionService.airDrop(addresses);
 
     const transactionConfig =
-      await transactionService.getTransactionConfigForContract(amount, data);
+      await transactionService.getTransactionConfigForContract(amount, data, wallet.address);
 
     const signedTransaction = await transactionService.signTransaction(
       wallet.privateKey,
