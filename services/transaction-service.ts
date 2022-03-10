@@ -65,7 +65,7 @@ export class TransactionService {
     };
 
     if (data) {
-      gas = (await web3.eth.estimateGas(transactionConfig)) * 2;
+      gas = await web3.eth.estimateGas(transactionConfig);
     }
 
     return {
