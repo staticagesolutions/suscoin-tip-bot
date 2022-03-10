@@ -52,7 +52,10 @@ export class TransactionService {
     if (!maxFeePerGas || !maxPriorityFeePerGas) {
       throw new Error("Unable to estimate gas fees.");
     }
+    const nonce = from ? await web3.eth.getTransactionCount(from) : undefined;
+    const accountNonce = nonce ? nonce + 1 : undefined;
     let transactionConfig: TransactionConfig = {
+      nonce: accountNonce,
       from,
       to: contractAddress,
       value: web3.utils.toWei(amount.toString(), "ether"),
