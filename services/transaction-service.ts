@@ -6,10 +6,11 @@ import { AbiItem } from "web3-utils";
 import { TipBotContract } from "./interfaces";
 
 export class TransactionService {
+  private contractAddress = process.env.CONTRACT_ADDRESS;
   constructor(private gasEstimatorService: GasEstimatorService) {}
 
   getContract() {
-    const contractAddress = process.env.CONTRACT_ADDRESS;
+    const contractAddress = this.contractAddress;
     if (!contractAddress) {
       throw new Error("SMART CONTRACT ADDRESS is undefined");
     }
