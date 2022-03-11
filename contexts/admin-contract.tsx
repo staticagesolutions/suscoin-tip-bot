@@ -6,6 +6,7 @@ import { AbiItem } from "web3-utils";
 import Web3 from "web3";
 import { useQuery, UseQueryResult } from "react-query";
 import { TransactionConfig } from "web3-core";
+import { Admin } from "@prisma/client";
 
 export type TransactionHash = string;
 interface AdminContext {
@@ -27,6 +28,16 @@ const AdminContext = createContext({} as AdminContext);
 
 export const useAdminContract = () => useContext(AdminContext);
 
+export const useAdmin = (address: string) =>
+  useQuery<Admin>(["admin", "member", address], {
+    queryFn: () =>
+      fetch(`/api/admin/${address}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((response) => response.json()),
+  });
 interface AdminContractProviderProps {
   contractAddress: string;
   rpcProvider: string;
@@ -56,7 +67,7 @@ const AdminContractProvider: React.FC<AdminContractProviderProps> = ({
     enabled: adminRole !== undefined,
   });
 
-  const roleMembers = useQuery<string[]>(["admin", "rolemembers"], {
+  const roleMembers = useQuery<string[]>(["admin", "member"], {
     queryFn: async () => {
       const count = parseInt(adminCount.data!, 10);
       const members = await Promise.all(

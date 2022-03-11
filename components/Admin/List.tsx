@@ -5,23 +5,22 @@ import {
   Link,
   List,
   ListItem,
-  ListItemButton,
   ListItemText,
   TextField,
   Typography,
 } from "@mui/material";
-import { useAdminContract } from "contexts/admin-contract";
+import { useAdminContract, useAdmin } from "contexts/admin-contract";
 
 import { Controller, FieldValues, useForm } from "react-hook-form";
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import utils from "web3-utils";
 
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useQuery } from "react-query";
+import { Edit } from "@mui/icons-material";
+import AdminEditDialog from "./Edit";
 
 interface Submission {
   message: string;
@@ -107,15 +106,40 @@ const NewAdminForm: React.FC = () => {
   );
 };
 
+const AdminListItem: React.FC<{ member: string }> = ({ member }) => {
+  const { data: admin, isLoading: adminIsLoading } = useAdmin(member);
+  const [isEditing, setIsEditing] = useState(false);
+
+  return (
+    <>
+      <ListItem
+        key={member}
+        secondaryAction={
+          <IconButton
+            edge="end"
+            aria-label="delete"
+            onClick={() => setIsEditing(true)}
+          >
+            <Edit />
+          </IconButton>
+        }
+      >
+        <ListItemText>
+          {member} {!adminIsLoading && admin && `(${admin.name})`}
+        </ListItemText>
+        <AdminEditDialog
+          address={member}
+          onClose={() => setIsEditing(false)}
+          open={isEditing}
+        />
+      </ListItem>
+    </>
+  );
+};
+
 const AdminList: React.FC = () => {
   const { adminCount, getAdminAt, removeAdmin, roleMembers } =
     useAdminContract();
-
-  const hanleDeleteAdmin = (address: string) => {
-    removeAdmin(address).then((transactionhash) => {
-      alert(transactionhash);
-    });
-  };
 
   return (
     <Box>
@@ -124,20 +148,7 @@ const AdminList: React.FC = () => {
       </Typography>
       <List>
         {roleMembers.data?.map((member) => (
-          <ListItem
-            key={member}
-            secondaryAction={
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => hanleDeleteAdmin(member)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            }
-          >
-            <ListItemText>{member}</ListItemText>
-          </ListItem>
+          <AdminListItem member={member} key={member} />
         ))}
       </List>
       <NewAdminForm />
