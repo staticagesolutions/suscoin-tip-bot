@@ -45,7 +45,7 @@ export class TransactionService {
     from?: string
   ): Promise<TransactionConfig> {
     const contractAddress = this.getContract()!.options.address;
-    let gas = web3.utils.toBN(21_000);
+    
     const { maxFeePerGas, maxPriorityFeePerGas } =
       await this.gasEstimatorService.getMaxAndPriorityFeeEstimate();
 
@@ -61,11 +61,9 @@ export class TransactionService {
       data,
     };
 
-    if (data) {
-      gas = web3.utils
-        .toBN(await web3.eth.estimateGas(transactionConfig))
-        .add(web3.utils.toBN(100_000));
-    }
+    const gas = web3.utils
+      .toBN(await web3.eth.estimateGas(transactionConfig))
+      .add(web3.utils.toBN(100_000));
 
     return {
       ...transactionConfig,
