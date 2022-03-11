@@ -45,17 +45,14 @@ export class TransactionService {
     from?: string
   ): Promise<TransactionConfig> {
     const contractAddress = this.getContract()!.options.address;
-    let gas = 21_000;
+    let gas = web3.utils.toBN(21_000);
     const { maxFeePerGas, maxPriorityFeePerGas } =
       await this.gasEstimatorService.getMaxAndPriorityFeeEstimate();
 
     if (!maxFeePerGas || !maxPriorityFeePerGas) {
       throw new Error("Unable to estimate gas fees.");
     }
-    const nonce = from ? await web3.eth.getTransactionCount(from) : undefined;
-    const accountNonce = nonce ? nonce + 1 : undefined;
     let transactionConfig: TransactionConfig = {
-      nonce: accountNonce,
       from,
       to: contractAddress,
       value: web3.utils.toWei(amount.toString(), "ether"),
@@ -65,12 +62,14 @@ export class TransactionService {
     };
 
     if (data) {
-      gas = await web3.eth.estimateGas(transactionConfig);
+      gas = web3.utils
+        .toBN(await web3.eth.estimateGas(transactionConfig))
+        .add(web3.utils.toBN(100_000));
     }
 
     return {
       ...transactionConfig,
-      gas,
+      gas: `0x${gas.toString("hex")}`,
     };
   }
 
