@@ -107,7 +107,10 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     console.error("No User Id!", update);
     throw new Error("No User Id found");
   }
-  let recipientWallet = await walletService.getOrCreateWallet(recipientUser.id);
+  let recipientWallet = await walletService.getOrCreateWallet(
+    recipientUser.id,
+    recipientUser.username
+  );
   if (!recipientWallet) {
     const message = "Failed to get recipient wallet.";
     await bot.sendMessage(id, message, sendMessageConfig);
@@ -124,7 +127,11 @@ export const tip = async (bot: TelegramBot, update: Update) => {
   let data = transactionService.tipByContract(recipientWallet.address);
 
   const transactionConfig =
-    await transactionService.getTransactionConfigForContract(amount, data, tipperWallet.address);
+    await transactionService.getTransactionConfigForContract(
+      amount,
+      data,
+      tipperWallet.address
+    );
 
   const signedTransaction = await transactionService.signTransaction(
     tipperWallet.privateKey,

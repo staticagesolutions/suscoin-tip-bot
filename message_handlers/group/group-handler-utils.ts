@@ -1,6 +1,6 @@
 import { ActiveAirdropMember, GroupChatMember } from "@prisma/client";
 import TelegramBot from "node-telegram-bot-api";
-import { walletService } from "services";
+import { groupMemberService, walletService } from "services";
 
 function getRandomInt(min: number, max: number) {
   min = Math.ceil(min);
@@ -34,9 +34,9 @@ async function getAddresses(
 ) {
   return await Promise.all(
     winners.map(async (winner) => {
-      const wallet = await walletService.getOrCreateWallet(
-        Number(winner.userId)
-      );
+      const userId = Number(winner.userId);
+      const groupMember = await groupMemberService.getGroupChatMember(userId);
+      const wallet = await walletService.getOrCreateWallet(userId, groupMember?.username ?? undefined);
       return wallet!.address;
     })
   );

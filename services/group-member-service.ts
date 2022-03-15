@@ -140,4 +140,14 @@ export class GroupMemberService {
 
     return result;
   }
+
+  async getGroupChatMember(userId: number) {
+    let result;
+    try {
+      result = await groupMemberRepository.getMemberByUserId(BigInt(userId));
+    } catch (e) {
+      console.error(e);
+    }
+    return result;
+  }
 }
