@@ -35,5 +35,15 @@ const groupMemberRepository = {
       },
     });
   },
+  getMemberByUserId: async (userId: bigint) => {
+    return await db.groupChatMember.findFirst({
+      where: {
+        userId
+      },
+      include: {
+        ActiveAirdropMember: true,
+      },
+    });
+  },
 };
 export default groupMemberRepository;
