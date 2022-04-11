@@ -46,6 +46,9 @@ const MetamaskProvider: React.FC = ({ children }) => {
     if (typeof window.ethereum !== "undefined" && window.ethereum.isMetaMask) {
       setIsEnabled(true);
     }
+    if (window.ethereum.selectedAddress) {
+      setAccount(window.ethereum.selectedAddress);
+    }
   }, []);
 
   return (

@@ -1,29 +1,8 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
 import db from "@db";
-import web3 from "services/web3";
-import ContractJSON from "@contracts/TipBot.json";
-import { AbiItem } from "web3-utils";
 import { AdminStatus } from "types/admin-status";
-
-const getContract = (address: string) => {
-  const contract = new web3.eth.Contract(
-    ContractJSON.abi as AbiItem[],
-    address
-  );
-
-  const adminRole = contract.methods.DEFAULT_ADMIN_ROLE();
-
-  const isAdmin = async (address: string): Promise<boolean> => {
-    const role = await adminRole.call();
-    return contract.methods.hasRole(role, address);
-  };
-
-  return {
-    adminRole,
-    isAdmin,
-  };
-};
+import { getContract } from "shared/api-helpers";
 
 export interface SetNamePayload {
   name: string;

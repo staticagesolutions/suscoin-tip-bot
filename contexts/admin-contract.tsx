@@ -87,7 +87,7 @@ const AdminContractProvider: React.FC<AdminContractProviderProps> = ({
   });
 
   useEffect(() => {
-    if (!account) {
+    if (!account || !adminRole) {
       return;
     }
     setIsFetching(true);

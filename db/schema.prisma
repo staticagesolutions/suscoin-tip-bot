@@ -58,24 +58,29 @@ model ActiveAirdrop {
 }
 
 model Admin {
-  name    String
-  address String @id @unique
-  status String @default("active")
+  name                        String
+  address                     String                       @id @unique
+  status                      String                       @default("active")
   withdrawalRequestSignatures WithdrawalRequestSignature[]
+  initiatedRequests           WithdrawalRequest[]
 }
 
 model WithdrawalRequest {
-  id     BigInt @id
-  amount BigInt
-  reason String
-  status String @default("pending")
-  signatures WithdrawalRequestSignature[]
+  id          Int                          @id @default(autoincrement())
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+  amount      String
+  reason      String
+  initiatedBy String
+  initiator   Admin                        @relation(fields: [initiatedBy], references: [address])
+  status      String                       @default("active")
+  signatures  WithdrawalRequestSignature[]
 }
 
 model WithdrawalRequestSignature {
-  requestId BigInt
+  requestId Int
   signature String            @id @unique
   address   String
-  admin Admin @relation(fields: [address], references: [address])
-  request WithdrawalRequest @relation(fields: [requestId], references: [id])
+  admin     Admin             @relation(fields: [address], references: [address])
+  request   WithdrawalRequest @relation(fields: [requestId], references: [id])
 }

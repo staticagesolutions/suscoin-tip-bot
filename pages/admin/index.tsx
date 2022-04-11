@@ -15,6 +15,7 @@ import {
 import { GetStaticPropsContext } from "next";
 import AdminList from "components/Admin/List";
 import AdminBalance from "components/Admin/Balance";
+import AdminWrapper, { AdminWrapperProps } from "components/Admin/Wrapper";
 
 const Admin: React.FC = () => {
   const {
@@ -65,30 +66,15 @@ const Admin: React.FC = () => {
   );
 };
 
-interface AdminWrapperProps {
-  contractAddress: string;
-  explorerLink: string;
-  rpcProvider: string;
-}
-
-const AdminWrapper = (props: AdminWrapperProps) => {
+const Wrapper = (props: AdminWrapperProps) => {
   return (
-    <QueryClientProvider>
-      <MetamaskProvider>
-        <AdminContractProvider
-          contractAddress={props.contractAddress}
-          rpcProvider={props.rpcProvider}
-        >
-          <Container maxWidth="md" sx={{ py: 10 }}>
-            <Admin />
-          </Container>
-        </AdminContractProvider>
-      </MetamaskProvider>
-    </QueryClientProvider>
+    <AdminWrapper {...props}>
+      <Admin />
+    </AdminWrapper>
   );
 };
 
-export default AdminWrapper;
+export default Wrapper;
 
 export async function getStaticProps(context: GetStaticPropsContext) {
   return {
