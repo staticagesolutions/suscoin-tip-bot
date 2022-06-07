@@ -1,5 +1,5 @@
 import TelegramBot, { Update } from "node-telegram-bot-api";
-import { groupMemberService } from "services";
+import { groupMemberService, walletService } from "services";
 import groupHandlerUtils from "./group-handler-utils";
 export const register = async (bot: TelegramBot, update: Update) => {
   const {
@@ -19,6 +19,12 @@ export const register = async (bot: TelegramBot, update: Update) => {
   if (isAdmin) {
     console.error("Is an admin", update);
     return;
+  }
+
+  const wallet = await walletService.getWallet(userId);
+
+  if (wallet && (!wallet.firstname || !wallet.username)) {
+    await walletService.updateWallet(userId, from.first_name, from.username);
   }
 
   const isRegistered = await groupMemberService.checkMemberRegistered(update);

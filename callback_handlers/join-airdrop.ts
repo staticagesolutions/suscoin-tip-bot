@@ -1,5 +1,6 @@
 import groupHandlerUtils from "message_handlers/group/group-handler-utils";
 import TelegramBot, { Update } from "node-telegram-bot-api";
+import { walletService } from "services";
 import { ActiveAirdropService } from "services/active-airdrop-service";
 import { AirdropMemberService } from "services/airdrop-member-service";
 import { BotMessageService } from "services/bot-message-service";
@@ -41,6 +42,12 @@ export class JoinAirdropCallbackHandler implements CallbackHandler {
         `Already registered to ${chatTitle}'s airdrop`
       );
       return;
+    }
+
+    const wallet = await walletService.getWallet(userId);
+
+    if (wallet && (!wallet.firstname || !wallet.username)) {
+      await walletService.updateWallet(userId, from.first_name, from.username);
     }
 
     const joined = await this.activeAirdropService.registerToActiveAirdrop(

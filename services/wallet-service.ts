@@ -55,6 +55,20 @@ export class WalletService {
     return wallet;
   }
 
+  public async updateWallet(
+    userId: number,
+    firstname?: string,
+    username?: string
+  ) {
+    let wallet;
+    try {
+      wallet = await walletRepository.updateWallet(userId, firstname, username);
+    } catch (e) {
+      console.error(e);
+    }
+    return wallet;
+  }
+
   public async deleteWallet(userId: number) {
     let isDeleted = false;
     try {

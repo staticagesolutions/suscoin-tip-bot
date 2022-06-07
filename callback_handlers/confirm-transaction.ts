@@ -5,6 +5,7 @@ import web3 from "services/web3";
 import { callbackUtils } from "callback_handlers";
 import { WalletService } from "services/wallet-service";
 import { getAirdropWinners, getContractAddressLink } from "shared/utils";
+import { getUserTag } from "shared/utils/telegram-user";
 
 type AdditionalMessage = {
   messageId: number;
@@ -105,9 +106,9 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
       if (type === "tip") {
         const [chatId, userId, messageId] = props;
         const recipientUser = await bot.getChatMember(chatId, userId);
-        const username = recipientUser.user?.username;
+        const userTag = getUserTag(recipientUser.user);
         additionalMessage = {
-          message: `@${username}'s tip is sent to the network.`,
+          message: `${userTag}'s tip is sent to the network.`,
           chatId: Number(chatId),
           messageId: Number(messageId),
         };
