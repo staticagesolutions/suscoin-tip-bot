@@ -105,7 +105,7 @@ export const getAirdropWinners = async (tokens: string[]) => {
     await Promise.all(
       addresses?.map(async (addr) => {
         const wallet = await walletService.getWalletByAddress(addr);
-        return `@${wallet?.username}`;
+        return wallet?.username ? `@${wallet?.username}` : wallet?.firstname;
       })!
     )
   ).join("\n");

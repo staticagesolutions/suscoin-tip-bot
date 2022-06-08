@@ -6,6 +6,7 @@ import TelegramBot, {
 import { botMessageService, transactionService, walletService } from "services";
 import { MessageConfigI } from "services/bot-message-service";
 import web3 from "services/web3";
+import { getUserTag } from "shared/utils/telegram-user";
 import { TransactionConfig } from "web3-core";
 
 export const tip = async (bot: TelegramBot, update: Update) => {
@@ -17,10 +18,17 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     text,
   } = update.message!;
 
+  if (!from) {
+    console.error("from User not found", update);
+    throw new Error("from User not found");
+  }
+
+  const fromUserTag = getUserTag(from);
+
   if (!reply_to_message) {
     await bot.sendMessage(
       id,
-      `@${from?.username} reply to a message and use \`\/tip <amount>\`\\.`,
+      `${fromUserTag} reply to a message and use \`\/tip <amount>\`\\.`,
       {
         reply_to_message_id: message_id,
         parse_mode: "MarkdownV2",
@@ -166,9 +174,14 @@ function generateBotMessage(
     transactionConfig.value!.toString(),
     "ether"
   );
-  const from = `${tipperUser.first_name} ${tipperUser.last_name} (@${tipperUser.username})`;
 
-  const to = `${recipientUser.first_name} ${recipientUser.last_name} (@${recipientUser.username})`;
+  const fromUsername = tipperUser?.username ? `(@${tipperUser.username})` : "";
+  const from = `${tipperUser.first_name} ${tipperUser.last_name} ${fromUsername}`;
+
+  const toUsername = recipientUser?.username
+    ? `(@${recipientUser.username})`
+    : "";
+  const to = `${recipientUser.first_name} ${recipientUser.last_name} ${toUsername}`;
 
   return `Confirming your transaction:\n\nFrom: ${from}\nTo Username: ${to}\n\nAmount: ${amountFromWei}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
 }
