@@ -1,7 +1,7 @@
 import { Account } from "web3-core";
 import web3 from "./web3";
 
-import db from "@db";
+import db, { Wallet } from "@db";
 import walletRepository from "../repositories/wallet.repository";
 
 export class WalletService {
@@ -55,14 +55,10 @@ export class WalletService {
     return wallet;
   }
 
-  public async updateWallet(
-    userId: number,
-    firstname?: string,
-    username?: string
-  ) {
+  public async updateWallet(userId: number, walletUpdate: Wallet) {
     let wallet;
     try {
-      wallet = await walletRepository.updateWallet(userId, firstname, username);
+      wallet = await walletRepository.updateWallet(userId, walletUpdate);
     } catch (e) {
       console.error(e);
     }

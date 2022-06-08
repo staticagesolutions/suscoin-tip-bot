@@ -20,7 +20,7 @@ const walletRepository = {
       },
     });
   },
-  updateWallet: async (userId: number, firstname?: string, username?: string) =>
+  updateWallet: async (userId: number, { firstname, username }: Wallet) =>
     db.wallet.update({
       data: {
         username,
