@@ -3,7 +3,10 @@ import { TransactionConfig } from "web3-core";
 import { GasEstimatorService } from "./gas-estimator-service";
 import ContractJSON from "../solidity/build/contracts/TipBot.json";
 import { AbiItem } from "web3-utils";
-import { TipBotContract } from "./interfaces";
+import { ERC20Contract, TipBotContract } from "./interfaces";
+import { ERC20Token } from "types/supported-erc20-token";
+import { Contract } from "web3-eth-contract/types";
+import { supportedTokenService } from "services";
 
 export class TransactionService {
   private contractAddress = process.env.CONTRACT_ADDRESS;
@@ -24,6 +27,30 @@ export class TransactionService {
     return contract;
   }
 
+  async getContractByToken(token: ERC20Token): Promise<Contract | null> {
+    let contract: Contract | null = null;
+    const abi = supportedTokenService.getERC20ABI();
+    const address = supportedTokenService.getContractAddress(token);
+    if (abi && address) {
+      contract = new web3.eth.Contract(abi, address);
+    }
+    return contract;
+  }
+
+  approve(
+    contract: ERC20Contract,
+    address: string,
+    spenderAddress: string,
+    amount: number
+  ) {
+    return contract.methods
+      .approve(
+        spenderAddress,
+        web3.utils.toWei(web3.utils.toBN(amount), "ether")
+      )
+      .send({ from: address });
+  }
+
   airDrop(addresses: string[]) {
     const contract: TipBotContract = this.getContract()!;
     return contract.methods.airDrop(addresses).encodeABI();
@@ -34,17 +61,43 @@ export class TransactionService {
     return contract.methods.tip(recipientAddress).encodeABI();
   }
 
+  tipByToken(recipientAddress: string, tokenAddress: string, amount: number) {
+    const contract: TipBotContract = this.getContract()!;
+    return contract.methods
+      .tipByToken(
+        recipientAddress,
+        tokenAddress,
+        web3.utils.toWei(web3.utils.toBN(amount), "ether")
+      )
+      .encodeABI();
+  }
+
   async validateSufficientBalance(address: string, amount: number) {
     const balance = await web3.eth.getBalance(address);
+    return Number(web3.utils.fromWei(balance, "ether")) > amount;
+  }
+
+  async validateSufficientBalanceByContract(
+    contract: ERC20Contract,
+    address: string,
+    amount: number
+  ) {
+    const balance = await contract.methods
+      .balanceOf(address)
+      .call({ from: address });
     return Number(web3.utils.fromWei(balance, "ether")) > amount;
   }
 
   async getTransactionConfigForContract(
     amount: number,
     data?: any,
-    from?: string
+    from?: string,
+    contract?: Contract
   ): Promise<TransactionConfig> {
-    const contractAddress = this.getContract()!.options.address;
+    let contractAddress = this.getContract()!.options.address;
+    if (contract) {
+      contractAddress = contract.options.address;
+    }
 
     const { maxFeePerGas, maxPriorityFeePerGas } =
       await this.gasEstimatorService.getMaxAndPriorityFeeEstimate();
