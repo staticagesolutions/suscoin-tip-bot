@@ -24,11 +24,17 @@ export const register = async (bot: TelegramBot, update: Update) => {
 
   const wallet = await walletService.getWallet(userId);
 
-  if (wallet && (!wallet.firstname || !wallet.username)) {
+  if (
+    wallet &&
+    (!wallet.firstname ||
+      !wallet.username ||
+      from.username !== wallet.username ||
+      from.first_name !== wallet.firstname)
+  ) {
     let updateWallet: Wallet = {
       ...wallet,
-      firstname: wallet.firstname,
-      username: wallet.username,
+      firstname: from.first_name,
+      username: from.username ?? "",
     };
     await walletService.updateWallet(userId, updateWallet);
   }
