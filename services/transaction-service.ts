@@ -6,7 +6,7 @@ import { AbiItem } from "web3-utils";
 import { ERC20Contract, TipBotContract } from "./interfaces";
 import { ERC20Token } from "types/supported-erc20-token";
 import { Contract } from "web3-eth-contract/types";
-import { supportedTokenService } from "services";
+import { SupportedTokenService } from "../services/supported-token-service";
 
 export class TransactionService {
   private contractAddress = process.env.CONTRACT_ADDRESS;
@@ -29,8 +29,8 @@ export class TransactionService {
 
   async getContractByToken(token: ERC20Token): Promise<Contract | null> {
     let contract: Contract | null = null;
-    const abi = supportedTokenService.getERC20ABI();
-    const address = supportedTokenService.getContractAddress(token);
+    const abi = SupportedTokenService.getERC20ABI();
+    const address = SupportedTokenService.getContractAddress(token);
     if (abi && address) {
       contract = new web3.eth.Contract(abi, address);
     }

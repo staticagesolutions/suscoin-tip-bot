@@ -10,6 +10,7 @@ import { getUserTag } from "shared/utils/telegram-user";
 import { TransactionConfig } from "web3-core";
 import { ERC20Token } from "types/supported-erc20-token";
 import { ERC20Contract } from "services/interfaces";
+import { Contract } from "web3-eth-contract/types";
 import { Wallet } from "@db";
 
 export const tip = async (bot: TelegramBot, update: Update) => {
@@ -110,10 +111,23 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
+  let tokenContract: Contract | null = null;
+
+  if (tokenSymbol) {
+    tokenContract = await transactionService.getContractByToken(
+      tokenSymbol as ERC20Token
+    );
+    if (!tokenContract) {
+      console.error(`Failed to get ${tokenSymbol} contract`);
+      return;
+    }
+  }
+
   const isBalanceSufficient = await validateBalance(
     tokens,
     tipperWallet.address,
-    amount
+    amount,
+    tokenContract
   );
 
   if (!isBalanceSufficient) {
@@ -148,7 +162,7 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     tipperWallet,
     recipientWallet,
     amount,
-    tokenSymbol as ERC20Token
+    tokenContract!
   );
   if (!transactionConfig) {
     console.error("Failed to create transaction config.");
@@ -193,18 +207,11 @@ async function buildTransactionConfig(
   tipperWallet: Wallet,
   recipientWallet: Wallet,
   amount: number,
-  tokenSymbol?: ERC20Token
+  tokenContract?: Contract
 ) {
   let data = null;
   let transactionConfig = null;
-  if (tokenSymbol) {
-    const tokenContract = await transactionService.getContractByToken(
-      tokenSymbol
-    );
-    if (!tokenContract) {
-      console.error(`Failed to get ${tokenSymbol} contract`);
-      return;
-    }
+  if (tokenContract) {
     await transactionService.approve(
       tokenContract,
       tipperWallet.address,
@@ -221,7 +228,7 @@ async function buildTransactionConfig(
     data = transactionService.tipByContract(recipientWallet.address);
   }
   transactionConfig = await transactionService.getTransactionConfigForContract(
-    tokenSymbol ? 0 : amount,
+    tokenContract ? 0 : amount,
     data,
     tipperWallet.address
   );
@@ -232,10 +239,11 @@ async function validateBalance(
   tokens: string[],
   address: string,
   amount: number,
-  contract?: ERC20Contract
+  contract?: ERC20Contract | null
 ) {
   let isBalanceSufficient = false;
-  if (tokens.length !== 2) {
+
+  if (tokens.length === 2) {
     isBalanceSufficient = await transactionService.validateSufficientBalance(
       address,
       amount

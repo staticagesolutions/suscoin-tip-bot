@@ -14,6 +14,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
 
   // Start of events declaration
   event Tip ( address indexed from,  address indexed toAddress, uint256 amount );
+  event TipToken ( address indexed from,  address indexed toAddress, uint256 amount );
   event AirDrop ( address indexed from, address indexed toAddress, uint256 amount);
   event Withdraw ( uint256 amount, bytes32 indexed reason);
 
@@ -50,7 +51,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     );
   }
 
-  function tipByToken(address toAddress, IERC20 token,  uint256 amount) public payable nonReentrant{
+  function tipByToken(address toAddress, IERC20 token,  uint256 amount) public nonReentrant{
 
     require(amount > 0, "Amount must be greater than 0");
     
@@ -62,7 +63,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     bool successTransfer = token.transfer(toAddress,newBalance);
     require(successTransfer, "Transfer to recipient failed");
 
-    emit Tip( 
+    emit TipToken(
       msg.sender,
       toAddress,
       newBalance
