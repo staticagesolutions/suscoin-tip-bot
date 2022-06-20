@@ -10,6 +10,11 @@ export interface TipBotContract extends Contract {
       tokenAddress: string,
       amount: BN
     ) => ContractSendMethod;
+    airDropToken: (
+      addresses: string[],
+      tokenAddress: string,
+      amount: BN
+    ) => ContractSendMethod;
   };
 }
 

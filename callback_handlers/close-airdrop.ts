@@ -119,7 +119,8 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
     let botMessage = generateAirdropMessage(
       addresses,
       transactionConfig,
-      signedTransaction.rawTransaction!
+      signedTransaction.rawTransaction!,
+      amount
     );
 
     await bot.sendMessage(from!.id, botMessage, {

@@ -56,6 +56,17 @@ export class TransactionService {
     return contract.methods.airDrop(addresses).encodeABI();
   }
 
+  airDropByToken(addresses: string[], tokenAddress: string, amount: number) {
+    const contract: TipBotContract = this.getContract()!;
+    return contract.methods
+      .airDropToken(
+        addresses,
+        tokenAddress,
+        web3.utils.toWei(web3.utils.toBN(amount), "ether")
+      )
+      .encodeABI();
+  }
+
   tipByContract(recipientAddress: string) {
     const contract: TipBotContract = this.getContract()!;
     return contract.methods.tip(recipientAddress).encodeABI();

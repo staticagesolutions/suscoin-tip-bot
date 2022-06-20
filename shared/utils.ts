@@ -82,14 +82,13 @@ export const stringifyBotCommands = (commands: BotCommand[]) => {
 export function generateAirdropMessage(
   addresses: string[],
   transactionConfig: TransactionConfig,
-  rawTransaction: string
+  rawTransaction: string,
+  amount: number,
+  tokenSymbol?: string,
 ) {
-  const amountFromWei = web3.utils.fromWei(
-    transactionConfig.value!.toString(),
-    "ether"
-  );
+  const symbol = tokenSymbol ?? "SYS";
 
-  return `Confirming your transaction:\n\nWinners: \`${addresses}\`\n\nContract Address: ${transactionConfig.to}\n\nAmount: ${amountFromWei}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
+  return `Confirming your transaction:\n\nWinners: \`${addresses}\`\n\nContract Address: ${transactionConfig.to}\n\nAmount: ${amount} ${symbol}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
 }
 
 export const getAirdropWinners = async (tokens: string[]) => {
