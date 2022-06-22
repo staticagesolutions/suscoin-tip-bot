@@ -209,7 +209,8 @@ async function buildTransactionConfig(
   amount: number,
   tokenContract?: Contract
 ) {
-  let data = null;
+  let data = transactionService.tipByContract(recipientWallet.address);
+
   let transactionConfig = null;
   if (tokenContract) {
     await transactionService.approve(
@@ -224,9 +225,8 @@ async function buildTransactionConfig(
       tokenContract.options.address,
       amount
     );
-  } else {
-    data = transactionService.tipByContract(recipientWallet.address);
   }
+
   transactionConfig = await transactionService.getTransactionConfigForContract(
     tokenContract ? 0 : amount,
     data,
