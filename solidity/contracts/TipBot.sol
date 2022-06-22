@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
 
 contract TipBot is AccessControlEnumerable, ReentrancyGuard {
   using ECDSA for bytes32;
@@ -13,6 +14,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
 
   // Start of events declaration
   event Tip ( address indexed from,  address indexed toAddress, uint256 amount );
+  event TipToken ( address indexed from,  address indexed toAddress, uint256 amount );
   event AirDrop ( address indexed from, address indexed toAddress, uint256 amount);
   event Withdraw ( uint256 amount, bytes32 indexed reason);
 
@@ -43,6 +45,25 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     require(success, "Failed to send Token");
 
     emit Tip( 
+      msg.sender,
+      toAddress,
+      newBalance
+    );
+  }
+
+  function tipByToken(address toAddress, IERC20 token,  uint256 amount) public nonReentrant{
+
+    require(amount > 0, "Amount must be greater than 0");
+    
+    bool success = token.transferFrom(msg.sender, address(this), amount);
+    require(success, "Transfer failed");
+
+    uint256 newBalance = ((1 ether - feeRate) * amount)/1 ether;
+
+    bool successTransfer = token.transfer(toAddress,newBalance);
+    require(successTransfer, "Transfer to recipient failed");
+
+    emit TipToken(
       msg.sender,
       toAddress,
       newBalance

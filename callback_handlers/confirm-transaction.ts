@@ -112,8 +112,7 @@ export class ConfirmTransactionCallbackHandler implements CallbackHandler {
           chatId: Number(chatId),
           messageId: Number(messageId),
         };
-      }
-      if (parsedData!.includes("airdrop")) {
+      } else if (parsedData!.includes("airdrop")) {
         const [chatId, messageId] = props;
         const winnerAddresses = await getAirdropWinners(tokens);
         const link = getContractAddressLink();
