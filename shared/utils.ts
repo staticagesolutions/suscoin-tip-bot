@@ -1,5 +1,6 @@
 import { BotCommand } from "node-telegram-bot-api";
-import { walletService } from "services";
+import { transactionService, walletService } from "services";
+import { ERC20Contract } from "services/interfaces";
 import web3 from "services/web3";
 import { TransactionConfig } from "web3-core";
 
@@ -84,7 +85,7 @@ export function generateAirdropMessage(
   transactionConfig: TransactionConfig,
   rawTransaction: string,
   amount: number,
-  tokenSymbol?: string,
+  tokenSymbol?: string
 ) {
   const symbol = tokenSymbol ?? "SYS";
 
@@ -114,6 +115,30 @@ export const getContractAddressLink = () => {
   const explorerLink =
     process.env.EXPLORER_LINK ?? "https://explorer.syscoin.org";
   return `${explorerLink}/address/${process.env.CONTRACT_ADDRESS}`;
+};
+
+export const validateBalance = async function (
+  address: string,
+  amount: number,
+  contract?: ERC20Contract | null
+): Promise<Boolean> {
+  let isBalanceSufficient = false;
+
+  if (contract) {
+    isBalanceSufficient =
+      await transactionService.validateSufficientBalanceByContract(
+        contract,
+        address,
+        amount
+      );
+  } else {
+    isBalanceSufficient = await transactionService.validateSufficientBalance(
+      address,
+      amount
+    );
+  }
+
+  return isBalanceSufficient;
 };
 
 export const botCommands = {

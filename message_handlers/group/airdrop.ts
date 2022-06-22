@@ -180,8 +180,8 @@ async function buildTransactionConfig(
   amount: number,
   tokenContract?: Contract | null
 ): Promise<TransactionConfig> {
-  let data = null;
-  let transactionConfig = null;
+  let data = transactionService.airDrop(winnerAddresses);
+
   if (tokenContract) {
     await transactionService.approve(
       tokenContract,
@@ -195,14 +195,15 @@ async function buildTransactionConfig(
       tokenContract.options.address,
       amount
     );
-  } else {
-    data = transactionService.airDrop(winnerAddresses);
   }
-  transactionConfig = await transactionService.getTransactionConfigForContract(
-    tokenContract ? 0 : amount,
-    data,
-    wallet.address
-  );
+
+  let transactionConfig =
+    await transactionService.getTransactionConfigForContract(
+      tokenContract ? 0 : amount,
+      data,
+      wallet.address
+    );
+
   return transactionConfig;
 }
 
