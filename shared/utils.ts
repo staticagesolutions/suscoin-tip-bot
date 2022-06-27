@@ -1,5 +1,6 @@
 import { BotCommand } from "node-telegram-bot-api";
-import { walletService } from "services";
+import { transactionService, walletService } from "services";
+import { ERC20Contract } from "services/interfaces";
 import web3 from "services/web3";
 import { TransactionConfig } from "web3-core";
 
@@ -82,14 +83,13 @@ export const stringifyBotCommands = (commands: BotCommand[]) => {
 export function generateAirdropMessage(
   addresses: string[],
   transactionConfig: TransactionConfig,
-  rawTransaction: string
+  rawTransaction: string,
+  amount: number,
+  tokenSymbol?: string
 ) {
-  const amountFromWei = web3.utils.fromWei(
-    transactionConfig.value!.toString(),
-    "ether"
-  );
+  const symbol = tokenSymbol ?? "SYS";
 
-  return `Confirming your transaction:\n\nWinners: \`${addresses}\`\n\nContract Address: ${transactionConfig.to}\n\nAmount: ${amountFromWei}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
+  return `Confirming your transaction:\n\nWinners: \`${addresses}\`\n\nContract Address: ${transactionConfig.to}\n\nAmount: ${amount} ${symbol}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
 }
 
 export const getAirdropWinners = async (tokens: string[]) => {
@@ -115,6 +115,30 @@ export const getContractAddressLink = () => {
   const explorerLink =
     process.env.EXPLORER_LINK ?? "https://explorer.syscoin.org";
   return `${explorerLink}/address/${process.env.CONTRACT_ADDRESS}`;
+};
+
+export const validateBalance = async function (
+  address: string,
+  amount: number,
+  contract?: ERC20Contract | null
+): Promise<Boolean> {
+  let isBalanceSufficient = false;
+
+  if (contract) {
+    isBalanceSufficient =
+      await transactionService.validateSufficientBalanceByContract(
+        contract,
+        address,
+        amount
+      );
+  } else {
+    isBalanceSufficient = await transactionService.validateSufficientBalance(
+      address,
+      amount
+    );
+  }
+
+  return isBalanceSufficient;
 };
 
 export const botCommands = {

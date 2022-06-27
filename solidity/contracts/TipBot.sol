@@ -16,6 +16,7 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
   event Tip ( address indexed from,  address indexed toAddress, uint256 amount );
   event TipToken ( address indexed from,  address indexed toAddress, uint256 amount );
   event AirDrop ( address indexed from, address indexed toAddress, uint256 amount);
+  event AirDropToken ( address indexed from, address indexed toAddress, uint256 amount);
   event Withdraw ( uint256 amount, bytes32 indexed reason);
 
   // Global variables used in contract
@@ -84,6 +85,31 @@ contract TipBot is AccessControlEnumerable, ReentrancyGuard {
     require(success, "Failed to send Token");
 
       emit AirDrop(
+        msg.sender,
+        accountAddress[i],
+        distributedAmount
+      );
+    }
+  }
+
+  function airDropToken ( 
+    address[] memory accountAddress,
+    IERC20 token,  uint256 amount
+  ) public nonReentrant {
+    require(amount > 0, "Amount must be greater than 0");
+    require(accountAddress.length > 0, "Addresses cannot be empty");
+    
+    bool success = token.transferFrom(msg.sender, address(this), amount);
+    require(success, "Transfer failed");
+
+    uint256 distributedAmount = ( ((1 ether - airdropRate) * amount ) / 1 ether ) / accountAddress.length;
+
+
+    for(uint8 i = 0; i < accountAddress.length; i++){
+      bool successTransfer = token.transfer(accountAddress[i], distributedAmount);
+      require(successTransfer, "Failed to send Token");
+
+      emit AirDropToken(
         msg.sender,
         accountAddress[i],
         distributedAmount

@@ -6,9 +6,14 @@ import {
   walletService,
 } from "services";
 import { MessageConfigI } from "services/bot-message-service";
+import { ERC20Contract } from "services/interfaces";
 import { generateAirdropMessage } from "shared/utils";
+import { Contract } from "web3-eth-contract/types";
+import { TransactionConfig } from "web3-core";
+import { Wallet } from "@db";
 
 import groupHandlerUtils from "./group-handler-utils";
+import { ERC20Token } from "types/supported-erc20-token";
 
 export const airdrop = async (bot: TelegramBot, update: Update) => {
   const {
@@ -44,9 +49,10 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
 
   const tokens = (text ?? "").split(" ");
 
-  const properSyntax = "Must be: `/airdrop <amount> <count>`";
+  const properSyntax =
+    "Must be: `/airdrop <amount> <count>` or `/airdrop <token> <amount> <count>`";
 
-  if (tokens.length !== 3) {
+  if (tokens.length !== 3 && tokens.length !== 4) {
     await bot.sendMessage(
       id,
       `*Invalid Syntax*:\n${properSyntax}`,
@@ -55,7 +61,16 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
-  const [_, amountInText, numberWinnersInText] = (text ?? "").split(" ");
+  const { amountInText, numberWinnersInText, tokenSymbol } =
+    parseTokens(tokens);
+
+  if (tokenSymbol) {
+    if (!Object.values(ERC20Token).includes(tokenSymbol as ERC20Token)) {
+      const message = "Invalid token.";
+      await bot.sendMessage(id, message, sendMessageConfig);
+      return;
+    }
+  }
 
   const amount = Number(amountInText);
   const numberOfWinners = Number(numberWinnersInText);
@@ -73,6 +88,18 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
       botMessageConfig
     );
     return;
+  }
+
+  let tokenContract: Contract | null = null;
+
+  if (tokenSymbol) {
+    tokenContract = await transactionService.getContractByToken(
+      tokenSymbol as ERC20Token
+    );
+    if (!tokenContract) {
+      console.error(`Failed to get ${tokenSymbol} contract`);
+      return;
+    }
   }
 
   const members = await groupMemberService.getGroupChatMembers(id);
@@ -100,15 +127,29 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
+  const isBalanceSufficient = await validateBalance(
+    tokens,
+    wallet.address,
+    amount,
+    tokenContract
+  );
+
+  if (!isBalanceSufficient) {
+    await botMessageService.insufficientBalance(botMessageConfig);
+    return;
+  }
+
   const addresses = await groupHandlerUtils.selectWinners(
     numberOfWinners,
     members
   );
 
-  let data = transactionService.airDrop(addresses);
-
-  const transactionConfig =
-    await transactionService.getTransactionConfigForContract(amount, data, wallet.address);
+  const transactionConfig: TransactionConfig = await buildTransactionConfig(
+    wallet,
+    addresses,
+    amount,
+    tokenContract
+  );
 
   const signedTransaction = await transactionService.signTransaction(
     wallet.privateKey,
@@ -118,7 +159,9 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
   let message = generateAirdropMessage(
     addresses,
     transactionConfig,
-    signedTransaction.rawTransaction!
+    signedTransaction.rawTransaction!,
+    amount,
+    tokenSymbol
   );
 
   await bot.sendMessage(from!.id, message, {
@@ -130,3 +173,81 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     ),
   });
 };
+
+async function buildTransactionConfig(
+  wallet: Wallet,
+  winnerAddresses: string[],
+  amount: number,
+  tokenContract?: Contract | null
+): Promise<TransactionConfig> {
+  let data = transactionService.airDrop(winnerAddresses);
+
+  if (tokenContract) {
+    await transactionService.approve(
+      tokenContract,
+      wallet.address,
+      process.env.CONTRACT_ADDRESS!,
+      amount
+    );
+
+    data = transactionService.airDropByToken(
+      winnerAddresses,
+      tokenContract.options.address,
+      amount
+    );
+  }
+
+  let transactionConfig =
+    await transactionService.getTransactionConfigForContract(
+      tokenContract ? 0 : amount,
+      data,
+      wallet.address
+    );
+
+  return transactionConfig;
+}
+
+async function validateBalance(
+  tokens: string[],
+  address: string,
+  amount: number,
+  contract?: ERC20Contract | null
+): Promise<Boolean> {
+  let isBalanceSufficient = false;
+
+  if (contract) {
+    isBalanceSufficient =
+      await transactionService.validateSufficientBalanceByContract(
+        contract,
+        address,
+        amount
+      );
+  } else {
+    isBalanceSufficient = await transactionService.validateSufficientBalance(
+      address,
+      amount
+    );
+  }
+
+  return isBalanceSufficient;
+}
+
+function parseTokens(tokens: string[]): {
+  amountInText: string;
+  numberWinnersInText: string;
+  tokenSymbol?: string;
+} {
+  if (tokens.length === 4) {
+    const [_, tokenSymbol, amountInText, numberWinnersInText] = tokens;
+    return {
+      tokenSymbol,
+      amountInText,
+      numberWinnersInText,
+    };
+  }
+  const [_, amountInText, numberWinnersInText] = tokens;
+  return {
+    amountInText,
+    numberWinnersInText,
+  };
+}
