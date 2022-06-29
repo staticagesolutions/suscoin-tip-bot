@@ -7,13 +7,14 @@ import {
 } from "services";
 import { MessageConfigI } from "services/bot-message-service";
 import { ERC20Contract } from "services/interfaces";
-import { generateAirdropMessage } from "shared/utils";
+import { generateAirdropMessage, validateAllowance } from "shared/utils";
 import { Contract } from "web3-eth-contract/types";
 import { TransactionConfig } from "web3-core";
 import { Wallet } from "@db";
 
 import groupHandlerUtils from "./group-handler-utils";
 import { ERC20Token } from "types/supported-erc20-token";
+import { AllowanceError } from "shared/utils/AllowanceError";
 
 export const airdrop = async (bot: TelegramBot, update: Update) => {
   const {
@@ -144,12 +145,21 @@ export const airdrop = async (bot: TelegramBot, update: Update) => {
     members
   );
 
-  const transactionConfig: TransactionConfig = await buildTransactionConfig(
-    wallet,
-    addresses,
-    amount,
-    tokenContract
-  );
+  let transactionConfig: TransactionConfig | null;
+
+  try {
+    transactionConfig = await buildTransactionConfig(
+      wallet,
+      addresses,
+      amount,
+      tokenContract
+    );
+  } catch (error) {
+    if (error instanceof AllowanceError) {
+      await botMessageService.invalidAllowance(amount, botMessageConfig);
+    }
+    throw error;
+  }
 
   const signedTransaction = await transactionService.signTransaction(
     wallet.privateKey,
@@ -183,12 +193,7 @@ async function buildTransactionConfig(
   let data = transactionService.airDrop(winnerAddresses);
 
   if (tokenContract) {
-    await transactionService.approve(
-      tokenContract,
-      wallet.address,
-      process.env.CONTRACT_ADDRESS!,
-      amount
-    );
+    await validateAllowance(amount, tokenContract, wallet);
 
     data = transactionService.airDropByToken(
       winnerAddresses,

@@ -37,18 +37,32 @@ export class TransactionService {
     return contract;
   }
 
-  approve(
+  approve(contract: ERC20Contract, spenderAddress: string, amount: number) {
+    const amountToWei = web3.utils.toWei(String(amount), "ether");
+    return contract.methods.approve(spenderAddress, amountToWei).encodeABI();
+  }
+
+  getAllowance(
     contract: ERC20Contract,
-    address: string,
-    spenderAddress: string,
-    amount: number
+    ownerAddress: string,
+    spenderAddress: string
   ) {
-    return contract.methods
-      .approve(
-        spenderAddress,
-        web3.utils.toWei(web3.utils.toBN(amount), "ether")
-      )
-      .send({ from: address });
+    return contract.methods.allowance(ownerAddress, spenderAddress).call();
+  }
+
+  async validateAllowance(
+    amount: number,
+    contract: ERC20Contract,
+    ownerAddress: string,
+    spenderAddress: string
+  ): Promise<boolean> {
+    const allowance = await this.getAllowance(
+      contract,
+      ownerAddress,
+      spenderAddress
+    );
+    const isValid = Number(web3.utils.fromWei(allowance, "ether")) >= amount;
+    return isValid;
   }
 
   airDrop(addresses: string[]) {
@@ -62,7 +76,7 @@ export class TransactionService {
       .airDropToken(
         addresses,
         tokenAddress,
-        web3.utils.toWei(web3.utils.toBN(amount), "ether")
+        web3.utils.toWei(String(amount), "ether")
       )
       .encodeABI();
   }
@@ -78,7 +92,7 @@ export class TransactionService {
       .tipByToken(
         recipientAddress,
         tokenAddress,
-        web3.utils.toWei(web3.utils.toBN(amount), "ether")
+        web3.utils.toWei(String(amount), "ether")
       )
       .encodeABI();
   }

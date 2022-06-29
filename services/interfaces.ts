@@ -8,20 +8,27 @@ export interface TipBotContract extends Contract {
     tipByToken: (
       recipientAddress: string,
       tokenAddress: string,
-      amount: BN
+      amount: BN | string
     ) => ContractSendMethod;
     airDropToken: (
       addresses: string[],
       tokenAddress: string,
-      amount: BN
+      amount: BN | string
     ) => ContractSendMethod;
   };
 }
 
 export interface ERC20Contract extends Contract {
   methods: {
-    approve: (spenderAddress: string, amount: BN) => ContractSendMethod;
+    approve: (
+      spenderAddress: string,
+      amount: BN | string
+    ) => ContractSendMethod;
     balanceOf: (address: string) => ContractSendMethod;
+    allowance: (
+      ownerAddress: string,
+      spenderAddress: string
+    ) => ContractSendMethod;
   };
 }
 

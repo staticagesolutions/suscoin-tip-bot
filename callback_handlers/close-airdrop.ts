@@ -7,13 +7,18 @@ import {
   walletService,
 } from "services";
 import { MessageConfigI } from "services/bot-message-service";
-import { generateAirdropMessage, validateBalance } from "shared/utils";
+import {
+  generateAirdropMessage,
+  validateAllowance,
+  validateBalance,
+} from "shared/utils";
 import { CallbackData } from "./enums";
 import { CallbackHandler } from "./types";
 import { TransactionConfig } from "web3-core";
 import { Wallet } from "@db";
 import { Contract } from "web3-eth-contract/types";
 import { ERC20Token } from "types/supported-erc20-token";
+import { AllowanceError } from "shared/utils/AllowanceError";
 
 export class CloseAirdropCallbackHandler implements CallbackHandler {
   callbackData = CallbackData.CloseAirdrop;
@@ -133,12 +138,21 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
 
     let data = transactionService.airDrop(addresses);
 
-    const transactionConfig = await buildTransactionConfig(
-      wallet,
-      addresses,
-      amount,
-      tokenContract
-    );
+    let transactionConfig;
+
+    try {
+      transactionConfig = await buildTransactionConfig(
+        wallet,
+        addresses,
+        amount,
+        tokenContract
+      );
+    } catch (error) {
+      if (error instanceof AllowanceError) {
+        await botMessageService.invalidAllowance(amount, botMessageConfig);
+      }
+      throw error;
+    }
 
     const signedTransaction = await transactionService.signTransaction(
       wallet.privateKey,
@@ -169,13 +183,7 @@ async function buildTransactionConfig(
   let data = transactionService.airDrop(winnerAddresses);
 
   if (tokenContract) {
-    await transactionService.approve(
-      tokenContract,
-      wallet.address,
-      process.env.CONTRACT_ADDRESS!,
-      amount
-    );
-
+    await validateAllowance(amount, tokenContract, wallet);
     data = transactionService.airDropByToken(
       winnerAddresses,
       tokenContract.options.address,

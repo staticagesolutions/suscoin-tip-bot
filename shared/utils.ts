@@ -3,6 +3,8 @@ import { transactionService, walletService } from "services";
 import { ERC20Contract } from "services/interfaces";
 import web3 from "services/web3";
 import { TransactionConfig } from "web3-core";
+import { AllowanceError } from "./utils/AllowanceError";
+import { Wallet } from "@db";
 
 const standardCommands: BotCommand[] = [
   {
@@ -115,6 +117,24 @@ export const getContractAddressLink = () => {
   const explorerLink =
     process.env.EXPLORER_LINK ?? "https://explorer.syscoin.org";
   return `${explorerLink}/address/${process.env.CONTRACT_ADDRESS}`;
+};
+
+export const validateAllowance = async function (
+  amount: number,
+  contract: ERC20Contract,
+  wallet: Wallet
+): Promise<boolean> {
+  const botContractAddress = process.env.CONTRACT_ADDRESS!;
+  const isAllowanceValid = await transactionService.validateAllowance(
+    amount,
+    contract,
+    wallet.address,
+    botContractAddress
+  );
+  if (!isAllowanceValid) {
+    throw new AllowanceError();
+  }
+  return isAllowanceValid;
 };
 
 export const validateBalance = async function (
