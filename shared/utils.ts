@@ -29,6 +29,11 @@ const privateChatCommands: BotCommand[] = [
       "<address> <amount> : Sends token to an address with the specified amount.",
   },
   {
+    command: "/allowance",
+    description:
+      "<token> <amount> : Gives the Bot an allowance to make ERC20 token transaction",
+  },
+  {
     command: "/wallet_info",
     description: "Display your wallet information.",
   },

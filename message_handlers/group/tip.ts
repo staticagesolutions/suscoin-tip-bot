@@ -171,7 +171,10 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     );
   } catch (error) {
     if (error instanceof AllowanceError) {
-      await botMessageService.invalidAllowance(amount, botMessageConfig);
+      await botMessageService.invalidAllowance(amount, {
+        ...botMessageConfig,
+        chatId: tipperUser.id,
+      });
     }
     throw error;
   }

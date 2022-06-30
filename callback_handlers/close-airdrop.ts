@@ -149,7 +149,10 @@ export class CloseAirdropCallbackHandler implements CallbackHandler {
       );
     } catch (error) {
       if (error instanceof AllowanceError) {
-        await botMessageService.invalidAllowance(amount, botMessageConfig);
+        await botMessageService.invalidAllowance(amount, {
+          ...botMessageConfig,
+          chatId: from.id,
+        });
       }
       throw error;
     }
