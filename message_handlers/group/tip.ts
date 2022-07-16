@@ -12,6 +12,8 @@ import { ERC20Token } from "types/supported-erc20-token";
 import { ERC20Contract } from "services/interfaces";
 import { Contract } from "web3-eth-contract/types";
 import { Wallet } from "@db";
+import { AllowanceError } from "shared/utils/AllowanceError";
+import { validateAllowance } from "shared/utils";
 
 export const tip = async (bot: TelegramBot, update: Update) => {
   const {
@@ -158,12 +160,25 @@ export const tip = async (bot: TelegramBot, update: Update) => {
     return;
   }
 
-  const transactionConfig = await buildTransactionConfig(
-    tipperWallet,
-    recipientWallet,
-    amount,
-    tokenContract!
-  );
+  let transactionConfig;
+
+  try {
+    transactionConfig = await buildTransactionConfig(
+      tipperWallet,
+      recipientWallet,
+      amount,
+      tokenContract!
+    );
+  } catch (error) {
+    if (error instanceof AllowanceError) {
+      await botMessageService.invalidAllowance(amount, {
+        ...botMessageConfig,
+        chatId: tipperUser.id,
+      });
+    }
+    throw error;
+  }
+
   if (!transactionConfig) {
     console.error("Failed to create transaction config.");
     return;
@@ -213,12 +228,7 @@ async function buildTransactionConfig(
 
   let transactionConfig = null;
   if (tokenContract) {
-    await transactionService.approve(
-      tokenContract,
-      tipperWallet.address,
-      process.env.CONTRACT_ADDRESS!,
-      amount
-    );
+    await validateAllowance(amount, tokenContract, tipperWallet);
 
     data = transactionService.tipByToken(
       recipientWallet.address,
