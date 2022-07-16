@@ -276,6 +276,14 @@ function parseTokens(tokens: string[]): {
   };
 }
 
+function buildUserInfo(user: User) {
+  const username = user?.username ? `(@${user.username})` : "";
+  const userInfo = `${user.first_name} ${
+    user?.last_name ? user.last_name + " " : ""
+  }${username}`;
+  return userInfo;
+}
+
 function generateBotMessage(
   tipperUser: User,
   recipientUser: User,
@@ -288,13 +296,9 @@ function generateBotMessage(
     "ether"
   );
 
-  const fromUsername = tipperUser?.username ? `(@${tipperUser.username})` : "";
-  const from = `${tipperUser.first_name} ${tipperUser.last_name} ${fromUsername}`;
+  const from = buildUserInfo(tipperUser);
 
-  const toUsername = recipientUser?.username
-    ? `(@${recipientUser.username})`
-    : "";
-  const to = `${recipientUser.first_name} ${recipientUser.last_name} ${toUsername}`;
+  const to = buildUserInfo(recipientUser);
 
   return `Confirming your transaction:\n\nFrom: ${from}\nTo Username: ${to}\n\nAmount: ${amountFromWei} ${defaultToken}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
 }
@@ -306,13 +310,9 @@ function generateMessageForTipToken(
   tokenSymbol: string,
   amount: number
 ) {
-  const fromUsername = tipperUser?.username ? `(@${tipperUser.username})` : "";
-  const from = `${tipperUser.first_name} ${tipperUser.last_name} ${fromUsername}`;
+  const from = buildUserInfo(tipperUser);
 
-  const toUsername = recipientUser?.username
-    ? `(@${recipientUser.username})`
-    : "";
-  const to = `${recipientUser.first_name} ${recipientUser.last_name} ${toUsername}`;
+  const to = buildUserInfo(recipientUser);
 
   return `Confirming your transaction:\n\nFrom: ${from}\nTo Username: ${to}\n\nAmount: ${amount} ${tokenSymbol}\n\nPlease reply "yes" to this message to confirm.\n\n\nRAW Transaction: ${rawTransaction}`;
 }
