@@ -1,4 +1,4 @@
-# Syscoin Tip Bot
+# Suscoin Tip Bot
 
 ## Requirements
 ### Create Wallet `/create_wallet`
